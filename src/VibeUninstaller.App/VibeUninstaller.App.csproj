@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RootNamespace>VibeUninstaller.App</RootNamespace>
+    <AssemblyName>VibeUninstaller</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VibeUninstaller.Core\VibeUninstaller.Core.csproj" />
+    <ProjectReference Include="..\VibeUninstaller.Windows\VibeUninstaller.Windows.csproj" />
+    <ProjectReference Include="..\VibeUninstaller.Snapshot\VibeUninstaller.Snapshot.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+</Project>

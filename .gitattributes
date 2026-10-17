@@ -1,0 +1,14 @@
+# Normalize line endings: LF inside the repository, native on checkout.
+* text=auto eol=lf
+
+*.slnx text eol=lf
+*.cs text eol=lf
+*.xaml text eol=lf
+*.csproj text eol=lf
+*.props text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+
+*.png binary
+*.ico binary
+*.zip binary

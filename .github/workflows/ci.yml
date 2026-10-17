@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build-test:
+    name: Build and test (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore VibeUninstaller.slnx
+
+      - name: Build
+        run: dotnet build VibeUninstaller.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test VibeUninstaller.slnx --configuration Release --no-build --logger "trx;LogFileName=results.trx" --results-directory artifacts/test-results
+
+      - name: Publish GUI
+        run: dotnet publish src/VibeUninstaller.App/VibeUninstaller.App.csproj --configuration Release --no-build --output artifacts/gui
+
+      - name: Publish CLI
+        run: dotnet publish src/VibeUninstaller.Cli/VibeUninstaller.Cli.csproj --configuration Release --no-build --output artifacts/cli
+
+      - name: Verify the CLI runs
+        shell: pwsh
+        run: |
+          $exe = "artifacts/cli/vibe.exe"
+          if (-not (Test-Path $exe)) { throw "vibe.exe was not produced" }
+          & $exe version
+          & $exe list --json --limit 3 | Out-String | Write-Host
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: VibeUninstaller-${{ github.sha }}
+          path: |
+            artifacts/gui
+            artifacts/cli
+          if-no-files-found: error
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: artifacts/test-results
+          if-no-files-found: ignore

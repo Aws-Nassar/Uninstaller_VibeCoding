@@ -1,0 +1,23 @@
+# Build results
+bin/
+obj/
+artifacts/
+*.user
+.vs/
+.idea/
+
+# Test / coverage
+TestResults/
+*.coverage
+coverage*.xml
+
+# Tooling
+.vscode/*
+!.vscode/extensions.json
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Local app data
+*.log

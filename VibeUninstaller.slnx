@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VibeUninstaller.App/VibeUninstaller.App.csproj" />
+    <Project Path="src/VibeUninstaller.Cli/VibeUninstaller.Cli.csproj" />
+    <Project Path="src/VibeUninstaller.Core/VibeUninstaller.Core.csproj" />
+    <Project Path="src/VibeUninstaller.Snapshot/VibeUninstaller.Snapshot.csproj" />
+    <Project Path="src/VibeUninstaller.Windows/VibeUninstaller.Windows.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/VibeUninstaller.Tests/VibeUninstaller.Tests.csproj" />
+  </Folder>
+</Solution>
