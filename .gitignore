@@ -2,9 +2,15 @@
 bin/
 obj/
 artifacts/
-*.user
+*.binlog
+
+# IDE / user files
 .vs/
 .idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
 
 # Test / coverage
 TestResults/

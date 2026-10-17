@@ -1,5 +1,7 @@
 # VibeUninstaller
 
+[![CI](https://github.com/Aws-Nassar/Uninstaller_VibeCoding/actions/workflows/ci.yml/badge.svg)](https://github.com/Aws-Nassar/Uninstaller_VibeCoding/actions/workflows/ci.yml)
+
 A free, open-source (MIT) Windows uninstaller that removes applications **and** everything
 they left behind, with a preview before anything is touched.
 
@@ -19,12 +21,13 @@ Early development. The scope of the current milestone (M0 + M1) is:
 | Before/after snapshots of files and registry + explainable leftover scoring | Done |
 | Review screen with risk tiers (safe / moderate / advanced) and reasons | Done |
 | Removal: Recycle Bin first, `.reg` backup before every key deletion | Done |
-| Fingerprint-based scan (works for apps that are already gone) | Done |
+| Static leftover scan without running the uninstaller (`vibe scan`) | Done |
 | CLI with JSON output and stable exit codes | Done |
 | Install Watch, quarantine vault + undo, MFT/USN index, localization | Planned (M2-M6) |
 
-See [ROADMAP.md](ROADMAP.md) for the full plan and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-for the design.
+See [ROADMAP.md](ROADMAP.md) for the full plan and milestone status.
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) holds the design intent; the code and the
+ROADMAP statuses are the source of truth for what is actually implemented today.
 
 ## Safety model
 
@@ -81,6 +84,7 @@ src/VibeUninstaller.Windows     # Win32 specifics: providers, uninstall runner, 
 src/VibeUninstaller.App         # WPF user interface
 src/VibeUninstaller.Cli         # `vibe` command line tool
 tests/VibeUninstaller.Tests     # xUnit tests, including a XAML load smoke test
+AGENTS.md                       # instructions for coding agents working on this repo
 ```
 
 ## License

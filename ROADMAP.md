@@ -59,7 +59,7 @@ and IObit Uninstaller, is fully free (MIT), and adds things none of them offer
 - Logging, settings store, design docs (see `docs/ARCHITECTURE.md`).
 - Acceptance: `dotnet build` and `dotnet test` green in CI; empty shell app launches.
 
-Status: solution builds with zero warnings, 170 unit tests green, CI workflow in
+Status: solution builds with zero warnings, 169 unit tests green, CI workflow in
 `.github/workflows/ci.yml` publishes the GUI and the CLI and runs `vibe version` as a smoke
 test. Logging and the settings store are moved to M6 where the UI needs them.
 
