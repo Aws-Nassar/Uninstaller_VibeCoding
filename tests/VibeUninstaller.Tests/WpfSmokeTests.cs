@@ -43,6 +43,10 @@ public class WpfSmokeTests
                 var flow = new UninstallFlowWindow(TestData.SevenZip());
                 flowViewModel = flow.ViewModel;
 
+                stage = "ScanPreviewWindow";
+                var preview = new ScanPreviewWindow(TestData.SevenZip());
+                preview.Close();
+
                 stage = "review state with leftovers";
                 flow.ViewModel.State = FlowState.Review;
                 flow.ViewModel.Leftovers.Add(new LeftoverItemViewModel(new LeftoverItem

@@ -293,4 +293,180 @@
     </Setter>
   </Style>
 
+  <!-- Sidebar section header -->
+  <Style x:Key="SidebarHeaderText" TargetType="TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+    <Setter Property="FontFamily" Value="Segoe UI" />
+    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Margin" Value="8,0,0,6" />
+  </Style>
+
+  <!-- Sidebar navigation item (radio) -->
+  <Style x:Key="NavToggle" TargetType="RadioButton">
+    <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Margin" Value="0,0,0,2" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="RadioButton">
+          <Border x:Name="Root" CornerRadius="6" Padding="8,7" Background="Transparent">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Rectangle x:Name="Accent" Grid.Column="0" Width="3" Height="16" RadiusX="1.5" RadiusY="1.5"
+                         Fill="{StaticResource AccentBrush}" Visibility="Hidden"
+                         VerticalAlignment="Center" HorizontalAlignment="Left" />
+              <ContentPresenter Grid.Column="1" VerticalAlignment="Center" />
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Root" Property="Background" Value="{StaticResource RowHoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Root" Property="Background" Value="{StaticResource PanelAltBackground}" />
+              <Setter TargetName="Accent" Property="Visibility" Value="Visible" />
+              <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+              <Setter Property="FontWeight" Value="SemiBold" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Small toolbar button -->
+  <Style x:Key="SmallButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+    <Setter Property="Padding" Value="10,5" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+
+  <!-- Cards / panels -->
+  <Style x:Key="CardBorder" TargetType="Border">
+    <Setter Property="Background" Value="{StaticResource PanelBackground}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+  </Style>
+
+  <Style x:Key="PillBorder" TargetType="Border">
+    <Setter Property="Background" Value="{StaticResource PanelAltBackground}" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="9,3" />
+  </Style>
+
+  <Style x:Key="InfoLabel" TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
+    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style x:Key="InfoValue" TargetType="TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    <Setter Property="FontFamily" Value="Segoe UI" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="Margin" Value="0,1,0,0" />
+  </Style>
+
+  <!-- Dark context menu -->
+  <Style TargetType="ContextMenu">
+    <Setter Property="Background" Value="{StaticResource PanelAltBackground}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ContextMenu">
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="1" CornerRadius="8" Padding="4">
+            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style TargetType="MenuItem">
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="FontSize" Value="12.5" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="MenuItem">
+          <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="4"
+                  Padding="{TemplateBinding Padding}">
+            <ContentPresenter ContentSource="Header" VerticalAlignment="Center" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsHighlighted" Value="True">
+              <Setter TargetName="Root" Property="Background" Value="{StaticResource AccentBrush}" />
+              <Setter Property="Foreground" Value="White" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Property="Opacity" Value="0.5" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Slim dark scrollbars -->
+  <Style x:Key="ScrollThumb" TargetType="Thumb">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Thumb">
+          <Border Background="{StaticResource BorderBrush}" CornerRadius="4" Margin="2" />
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style TargetType="ScrollBar">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Width" Value="11" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ScrollBar">
+          <Grid Background="Transparent">
+            <Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="True">
+              <Track.DecreaseRepeatButton>
+                <RepeatButton Command="ScrollBar.PageUpCommand" Focusable="False">
+                  <RepeatButton.Template>
+                    <ControlTemplate TargetType="RepeatButton">
+                      <Border Background="Transparent" />
+                    </ControlTemplate>
+                  </RepeatButton.Template>
+                </RepeatButton>
+              </Track.DecreaseRepeatButton>
+              <Track.Thumb>
+                <Thumb Style="{StaticResource ScrollThumb}" />
+              </Track.Thumb>
+              <Track.IncreaseRepeatButton>
+                <RepeatButton Command="ScrollBar.PageDownCommand" Focusable="False">
+                  <RepeatButton.Template>
+                    <ControlTemplate TargetType="RepeatButton">
+                      <Border Background="Transparent" />
+                    </ControlTemplate>
+                  </RepeatButton.Template>
+                </RepeatButton>
+              </Track.IncreaseRepeatButton>
+            </Track>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+      <Trigger Property="Orientation" Value="Horizontal">
+        <Setter Property="Width" Value="Auto" />
+        <Setter Property="Height" Value="11" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
 </ResourceDictionary>

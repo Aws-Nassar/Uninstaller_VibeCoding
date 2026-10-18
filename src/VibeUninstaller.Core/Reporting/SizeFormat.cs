@@ -28,6 +28,13 @@ public static class SizeFormat
             unit++;
         }
 
+        // Rounding can turn "1023.9 KB" into "1,024 KB"; promote the unit instead.
+        while (unit < Units.Length - 1 && Math.Round(size, unit == 1 ? 0 : 1) >= 1024)
+        {
+            size /= 1024;
+            unit++;
+        }
+
         var formatted = size.ToString(unit == 1 ? "N0" : "N1", CultureInfo.InvariantCulture);
         return $"{formatted} {Units[unit]}";
     }

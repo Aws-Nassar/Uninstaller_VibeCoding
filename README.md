@@ -16,18 +16,36 @@ Early development. The scope of the current milestone (M0 + M1) is:
 | Area | State |
 |------|-------|
 | Discover installed apps (registry HKLM/HKCU, 32/64-bit views, Store/MSIX, Steam) | Done |
-| WPF GUI: search, filters, sorting, details pane | Done |
+| WPF GUI: library views (Programs / Store / Updates / Everything), search, quick filters, sortable list, details pane with actions | Done |
+| Fingerprint-only leftover preview from the GUI (changes nothing) | Done |
 | Run the app's own uninstaller (process-tree waiting, exit-code interpretation, UAC) | Done |
 | Before/after snapshots of files and registry + explainable leftover scoring | Done |
 | Review screen with risk tiers (safe / moderate / advanced) and reasons | Done |
 | Removal: Recycle Bin first, `.reg` backup before every key deletion | Done |
 | Static leftover scan without running the uninstaller (`vibe scan`) | Done |
 | CLI with JSON output and stable exit codes | Done |
+| Portable self-contained releases (GUI + CLI ZIPs on version tags) | Done |
 | Install Watch, quarantine vault + undo, MFT/USN index, localization | Planned (M2-M6) |
 
 See [ROADMAP.md](ROADMAP.md) for the full plan and milestone status.
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) holds the design intent; the code and the
 ROADMAP statuses are the source of truth for what is actually implemented today.
+
+## Download
+
+Portable, self-contained win-x64 builds are attached to every
+[release](https://github.com/Aws-Nassar/Uninstaller_VibeCoding/releases):
+
+| Archive | Contents |
+|---------|----------|
+| `VibeUninstaller-<version>-win-x64.zip` | The GUI. Unzip, run `VibeUninstaller.exe`, accept the UAC prompt. |
+| `vibe-<version>-win-x64.zip` | The `vibe` CLI for scripts and terminal use. |
+
+No .NET runtime installation is needed: the runtime is bundled into the executables.
+
+> The executables are not code-signed yet, so the first launch can show SmartScreen's
+> "Windows protected your PC" dialog. Choose *More info* and then *Run anyway* if you
+> trust the source; the binaries are built by this repository's release workflow.
 
 ## Safety model
 
@@ -44,8 +62,8 @@ Deleting leftovers is the dangerous part of an uninstaller, so the rules are str
 ## Requirements
 
 - Windows 10 2004 (build 19041) or newer
-- [.NET 10 SDK](https://dotnet.microsoft.com/download) to build; the released binaries will
-  carry the runtime with them.
+- To build from source: [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- The released ZIPs are self-contained and do not need a .NET installation.
 
 ## Build and run
 

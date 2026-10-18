@@ -3,6 +3,7 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VibeUninstaller.Core.Models;
+using VibeUninstaller.Core.Reporting;
 using VibeUninstaller.Windows.Providers;
 
 namespace VibeUninstaller.App.ViewModels;
@@ -18,7 +19,13 @@ public sealed partial class MainViewModel : ObservableObject
     private string _searchText = string.Empty;
 
     [ObservableProperty]
-    private string _viewFilter = "Programs";
+    private AppListView _view = AppListView.Programs;
+
+    [ObservableProperty]
+    private bool _largeAppsOnly;
+
+    [ObservableProperty]
+    private bool _recentlyInstalledOnly;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -30,16 +37,46 @@ public sealed partial class MainViewModel : ObservableObject
     private string _warningText = string.Empty;
 
     [ObservableProperty]
+    private string _filterSummaryText = string.Empty;
+
+    [ObservableProperty]
     private AppItemViewModel? _selectedApp;
+
+    [ObservableProperty]
+    private int _programsCount;
+
+    [ObservableProperty]
+    private int _storeCount;
+
+    [ObservableProperty]
+    private int _updatesCount;
+
+    [ObservableProperty]
+    private int _everythingCount;
+
+    public bool IsElevated { get; } = Windows.Execution.AdminCheck.IsElevated;
 
     [ObservableProperty]
     private string _elevationText = Windows.Execution.AdminCheck.IsElevated
         ? "Administrator"
         : "Standard user — restart as administrator for full cleanup";
 
-    partial void OnSearchTextChanged(string value) => ApplyFilter();
+    public string VersionText { get; } = FormatVersion();
 
-    partial void OnViewFilterChanged(string value) => ApplyFilter();
+    /// <summary>True when the search box should show its placeholder.</summary>
+    public bool IsSearchEmpty => string.IsNullOrWhiteSpace(SearchText);
+
+    partial void OnSearchTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsSearchEmpty));
+        ApplyFilter();
+    }
+
+    partial void OnViewChanged(AppListView value) => ApplyFilter();
+
+    partial void OnLargeAppsOnlyChanged(bool value) => ApplyFilter();
+
+    partial void OnRecentlyInstalledOnlyChanged(bool value) => ApplyFilter();
 
     [RelayCommand]
     public async Task RefreshAsync()
@@ -63,6 +100,7 @@ public sealed partial class MainViewModel : ObservableObject
             }
 
             WarningText = result.Warnings.Count > 0 ? string.Join(" · ", result.Warnings) : string.Empty;
+            UpdateViewCounts();
             ApplyFilter();
         }
         catch (Exception exception)
@@ -76,7 +114,10 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SetViewFilter(string filter) => ViewFilter = filter;
+    private void SetView(AppListView view) => View = view;
+
+    [RelayCommand]
+    private void ClearSearch() => SearchText = string.Empty;
 
     [RelayCommand]
     private void OpenInstallFolder()
@@ -93,25 +134,23 @@ public sealed partial class MainViewModel : ObservableObject
         });
     }
 
+    private void UpdateViewCounts()
+    {
+        ProgramsCount = _allApps.Count(item => AppListFilters.MatchesView(item.App, AppListView.Programs));
+        StoreCount = _allApps.Count(item => AppListFilters.MatchesView(item.App, AppListView.Store));
+        UpdatesCount = _allApps.Count(item => AppListFilters.MatchesView(item.App, AppListView.Updates));
+        EverythingCount = _allApps.Count(item => AppListFilters.MatchesView(item.App, AppListView.Everything));
+    }
+
     private void ApplyFilter()
     {
-        IEnumerable<AppItemViewModel> query = _allApps;
-
-        query = ViewFilter switch
-        {
-            "Store" => query.Where(app => app.App.Source == AppSource.Appx && !app.App.IsSystemComponent),
-            "Updates" => query.Where(app => app.App.IsUpdate),
-            "All" => query,
-            _ => query.Where(app => app.App.Source != AppSource.Appx && !app.App.IsUpdate),
-        };
-
-        if (!string.IsNullOrWhiteSpace(SearchText))
-        {
-            var needle = SearchText.Trim();
-            query = query.Where(app =>
-                app.DisplayName.Contains(needle, StringComparison.CurrentCultureIgnoreCase)
-                || app.Publisher.Contains(needle, StringComparison.CurrentCultureIgnoreCase));
-        }
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var query = _allApps
+            .Where(item =>
+                AppListFilters.MatchesView(item.App, View)
+                && AppListFilters.MatchesSearch(item.App, SearchText)
+                && AppListFilters.MatchesQuickFilters(item.App, LargeAppsOnly, RecentlyInstalledOnly, today))
+            .ToList();
 
         Apps.Clear();
         foreach (var app in query)
@@ -119,7 +158,16 @@ public sealed partial class MainViewModel : ObservableObject
             Apps.Add(app);
         }
 
-        StatusText = $"{Apps.Count:N0} of {_allApps.Count:N0} applications";
+        StatusText = $"{query.Count:N0} of {_allApps.Count:N0} applications";
+        FilterSummaryText = query.Count == 0
+            ? "nothing matches the current filters"
+            : $"{SizeFormat.Bytes(query.Sum(app => app.EstimatedSizeBytes ?? 0))} estimated on disk";
         SelectedApp = null;
+    }
+
+    private static string FormatVersion()
+    {
+        var version = typeof(MainViewModel).Assembly.GetName().Version;
+        return version is null ? "dev" : $"v{version.Major}.{version.Minor}.{Math.Max(version.Build, 0)}";
     }
 }

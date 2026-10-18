@@ -3,8 +3,13 @@ namespace VibeUninstaller.Windows.Providers;
 /// <summary>Minimal Valve KeyValues (VDF/ACF) parser.</summary>
 internal static class VdfParser
 {
-    public static Dictionary<string, object> Parse(string text)
+    public static Dictionary<string, object> Parse(string? text)
     {
+        if (string.IsNullOrEmpty(text))
+        {
+            return new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        }
+
         var index = 0;
         return ParseObject(text, ref index, skipOpeningBrace: true);
     }

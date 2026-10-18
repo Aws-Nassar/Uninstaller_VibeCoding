@@ -48,6 +48,11 @@ public static partial class CommandLineSplitter
         }
 
         var stripped = command.Trim('"').Trim();
+        if (stripped.Length == 0)
+        {
+            return null;
+        }
+
         if (!stripped.Contains(' '))
         {
             return (stripped, string.Empty);

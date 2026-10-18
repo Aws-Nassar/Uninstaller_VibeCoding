@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  release:
+    name: Portable build (win-x64)
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Resolve version
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF_TYPE -eq "tag") {
+            $version = $env:GITHUB_REF_NAME -replace '^v', ''
+          } else {
+            $version = "0.1.0-dev.$($env:GITHUB_SHA.Substring(0, 7))"
+          }
+          "VIBE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Version: $version"
+
+      - name: Restore
+        run: dotnet restore VibeUninstaller.slnx
+
+      - name: Build
+        run: dotnet build VibeUninstaller.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test VibeUninstaller.slnx --configuration Release --no-build
+
+      - name: Publish GUI (self-contained, single file)
+        run: >
+          dotnet publish src/VibeUninstaller.App/VibeUninstaller.App.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=none
+          -p:Version=${{ env.VIBE_VERSION }}
+          --output artifacts/gui
+
+      - name: Publish CLI (self-contained, single file)
+        run: >
+          dotnet publish src/VibeUninstaller.Cli/VibeUninstaller.Cli.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=none
+          -p:Version=${{ env.VIBE_VERSION }}
+          --output artifacts/cli
+
+      - name: Verify the portable CLI runs without a .NET install
+        shell: pwsh
+        run: |
+          $exe = "artifacts/cli/vibe.exe"
+          if (-not (Test-Path $exe)) { throw "vibe.exe was not produced" }
+          & $exe version
+          & $exe list --json --limit 2 | Out-String | Write-Host
+
+      - name: Package ZIPs
+        shell: pwsh
+        run: |
+          Compress-Archive -Path artifacts/gui/* -DestinationPath "artifacts/VibeUninstaller-$env:VIBE_VERSION-win-x64.zip" -CompressionLevel Optimal
+          Compress-Archive -Path artifacts/cli/* -DestinationPath "artifacts/vibe-$env:VIBE_VERSION-win-x64.zip" -CompressionLevel Optimal
+          Get-ChildItem artifacts/*.zip | Select-Object Name, Length
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create $env:GITHUB_REF_NAME `
+            --title "VibeUninstaller $env:VIBE_VERSION" `
+            --generate-notes `
+            "artifacts/VibeUninstaller-$env:VIBE_VERSION-win-x64.zip" `
+            "artifacts/vibe-$env:VIBE_VERSION-win-x64.zip"
+
+      - name: Upload build artifacts (manual runs only)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: VibeUninstaller-portable-${{ env.VIBE_VERSION }}
+          path: artifacts/*.zip
+          if-no-files-found: error

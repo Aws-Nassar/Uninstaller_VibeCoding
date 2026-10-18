@@ -22,13 +22,18 @@ public static class PathTools
         value = Environment.ExpandEnvironmentVariables(value);
         value = value.Replace('/', Separator);
 
-        if (!value.StartsWith(@"\\", StringComparison.Ordinal))
+        // Extended-length prefixes ("\\?\C:\...", "\\?\UNC\server\share") are a
+        // documented way to bypass prefix based deny lists, so they are removed.
+        if (value.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase))
         {
-            while (value.Contains(@"\\", StringComparison.Ordinal))
-            {
-                value = value.Replace(@"\\", @"\", StringComparison.Ordinal);
-            }
+            value = @"\\" + value[8..];
         }
+        else if (value.StartsWith(@"\\?\", StringComparison.Ordinal))
+        {
+            value = value[4..];
+        }
+
+        value = CollapseSegments(value);
 
         if (value.Length > 3 && value.EndsWith(Separator))
         {
@@ -41,6 +46,54 @@ public static class PathTools
         }
 
         return value;
+    }
+
+    /// <summary>
+    /// Collapses duplicate separators, resolves "." and ".." segments the way the
+    /// file system does, and trims per-segment trailing dots and spaces, which
+    /// Win32 silently ignores. Without this, prefix checks could be tricked with
+    /// paths such as "C:\Windows.\System32" or "C:\Windows\..\Windows".
+    /// </summary>
+    private static string CollapseSegments(string value)
+    {
+        var isUnc = value.StartsWith(@"\\", StringComparison.Ordinal);
+        var body = isUnc ? value[2..] : value;
+        var parts = body.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+
+        var stack = new List<string>(parts.Length);
+        foreach (var part in parts)
+        {
+            // Trailing spaces are ignored before the "."/".." check: Win32 strips
+            // them too, so ".. " is a parent segment, not a file named ".. ".
+            var bare = part.TrimEnd(' ');
+            if (bare == ".")
+            {
+                continue;
+            }
+
+            if (bare == "..")
+            {
+                // The drive letter (or, on UNC paths, server and share) is a floor.
+                var floor = isUnc ? Math.Min(2, stack.Count) : 1;
+                if (stack.Count > floor)
+                {
+                    stack.RemoveAt(stack.Count - 1);
+                }
+
+                continue;
+            }
+
+            var segment = bare.TrimEnd('.');
+            if (segment.Length == 0)
+            {
+                continue;
+            }
+
+            stack.Add(segment);
+        }
+
+        var rebuilt = string.Join(Separator, stack);
+        return isUnc ? @"\\" + rebuilt : rebuilt;
     }
 
     /// <summary>True when <paramref name="candidate"/> is inside <paramref name="root"/>.</summary>
@@ -143,8 +196,17 @@ public static class PathTools
             return false;
         }
 
+        var trimmed = value.Trim();
+        var hasOpenBrace = trimmed.StartsWith('{');
+        var hasCloseBrace = trimmed.EndsWith('}');
+        if (hasOpenBrace != hasCloseBrace)
+        {
+            return false;
+        }
+
+        var core = hasOpenBrace ? trimmed[1..^1] : trimmed;
         return System.Text.RegularExpressions.Regex.IsMatch(
-            value, @"^\{?[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\}?$");
+            core, @"^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$");
     }
 
     /// <summary>
@@ -162,6 +224,14 @@ public static class PathTools
         if (compact.Length != 32)
         {
             return null;
+        }
+
+        foreach (var character in compact)
+        {
+            if (!char.IsAsciiHexDigit(character))
+            {
+                return null;
+            }
         }
 
         var builder = new StringBuilder(32);

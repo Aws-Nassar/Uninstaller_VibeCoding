@@ -59,9 +59,11 @@ and IObit Uninstaller, is fully free (MIT), and adds things none of them offer
 - Logging, settings store, design docs (see `docs/ARCHITECTURE.md`).
 - Acceptance: `dotnet build` and `dotnet test` green in CI; empty shell app launches.
 
-Status: solution builds with zero warnings, 169 unit tests green, CI workflow in
+Status: solution builds with zero warnings, 270 unit tests green, CI workflow in
 `.github/workflows/ci.yml` publishes the GUI and the CLI and runs `vibe version` as a smoke
-test. Logging and the settings store are moved to M6 where the UI needs them.
+test. `.github/workflows/release.yml` turns a `v*` tag into a GitHub release with portable,
+self-contained win-x64 ZIPs for the GUI and the CLI (the first one is `v0.1.0`).
+Logging and the settings store are moved to M6 where the UI needs them.
 
 ### M1 — MVP: list, uninstall, clean (matches Revo Free) — done
 - Discover installed apps from all Uninstall registry keys (HKLM/HKCU, 32/64-bit views)
@@ -74,9 +76,10 @@ test. Logging and the settings store are moved to M6 where the UI needs them.
 - Acceptance: uninstall Firefox/7-Zip/LibreOffice with zero leftovers; nothing outside
   the app's own footprint is ever listed.
 
-Status: all of the above is implemented, plus the fingerprint based static scan (`vibe scan`)
-and the CLI with JSON output (`docs/CLI.md`). The acceptance run on real applications
-(Firefox, 7-Zip, LibreOffice) is still open and is tracked as the first item of M2.
+Status: all of the above is implemented, plus the fingerprint based static scan (`vibe scan`),
+a fingerprint-only leftover preview inside the GUI, and the CLI with JSON output (`docs/CLI.md`).
+The acceptance run on real applications (Firefox, 7-Zip, LibreOffice) is still open and is
+tracked as the first item of M2.
 
 ### M2 — Precision engine (beats Revo Free)
 - Install fingerprinting: name tokens, publisher, install dirs, executables, GUIDs, install date.

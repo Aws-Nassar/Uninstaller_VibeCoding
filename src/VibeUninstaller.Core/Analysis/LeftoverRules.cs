@@ -22,6 +22,9 @@ public sealed class LeftoverRules
 
     public bool IsRegistryDenied(string path)
     {
+        // Normalize here as well: the deny list must never depend on the caller
+        // remembering to canonicalize (see PathTools.Normalize).
+        path = PathTools.Normalize(path);
         if (path.Length == 0)
         {
             return true;
@@ -46,6 +49,10 @@ public sealed class LeftoverRules
 
     public bool IsFileDenied(string path)
     {
+        // Normalize here as well: "\\?\C:\Windows\..." and "C:\Windows.\..." are
+        // classic ways to slip past prefix checks, so the deny list canonicalizes
+        // instead of trusting the caller.
+        path = PathTools.Normalize(path);
         if (path.Length == 0)
         {
             return true;

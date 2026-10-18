@@ -3,31 +3,14 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using VibeUninstaller.Core.Models;
+using VibeUninstaller.Core.Reporting;
 
 namespace VibeUninstaller.App.Converters;
 
 public sealed class BytesToSizeConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        if (value is not long bytes || bytes <= 0)
-        {
-            return "—";
-        }
-
-        string[] units = { "B", "KB", "MB", "GB", "TB" };
-        double size = bytes;
-        var unit = 0;
-        while (size >= 1024 && unit < units.Length - 1)
-        {
-            size /= 1024;
-            unit++;
-        }
-
-        return unit == 0
-            ? $"{size:N0} {units[unit]}"
-            : $"{size:N1} {units[unit]}";
-    }
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is long bytes && bytes > 0 ? SizeFormat.Bytes(bytes) : "—";
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         Binding.DoNothing;
@@ -46,6 +29,15 @@ public sealed class EmptyStringToVisibilityConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         string.IsNullOrWhiteSpace(value as string) ? Visibility.Collapsed : Visibility.Visible;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        Binding.DoNothing;
+}
+
+public sealed class ZeroToVisibilityConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is int count && count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         Binding.DoNothing;
