@@ -113,6 +113,7 @@ src/VibeUninstaller.App         # WPF user interface (themes in Resources/Themes
 src/VibeUninstaller.Cli         # `vibe` command line tool
 tests/VibeUninstaller.Tests     # xUnit tests, including a XAML load smoke test
 assets/branding/app.ico         # application icon for the executables and shortcuts
+tools/icon-lab                  # redraws that icon (see its Program.cs for the two commands)
 installer/VibeUninstaller.iss   # Inno Setup script used by the release workflow
 AGENTS.md                       # instructions for coding agents working on this repo
 ```

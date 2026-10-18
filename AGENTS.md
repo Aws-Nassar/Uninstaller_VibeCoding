@@ -34,6 +34,10 @@ automation-first CLI. Pre-1.0; only milestones M0/M1 in `ROADMAP.md` are impleme
 - `VibeUninstaller.App`: WPF GUI, assembly name `VibeUninstaller`,
   CommunityToolkit.Mvvm source generators.
 - `VibeUninstaller.Cli`: assembly name `vibe`.
+- `tools/icon-lab`: the only source of `assets/branding/app.ico` (no vector original
+  exists). `dotnet run --project tools/icon-lab -- appico trash
+  assets/branding/app.ico` rewrites it; without arguments it draws every candidate
+  concept at 256 px and at the small sizes for review.
 - `assets/branding/app.ico` is the application icon embedded by App and CLI;
   `installer/VibeUninstaller.iss` is the Inno Setup script the release workflow runs.
 - `tests/VibeUninstaller.Tests` uses UseWPF and references App and CLI, not only

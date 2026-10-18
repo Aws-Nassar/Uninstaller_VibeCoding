@@ -9,4 +9,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/VibeUninstaller.Tests/VibeUninstaller.Tests.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/icon-lab/icon-lab.csproj" />
+  </Folder>
 </Solution>
