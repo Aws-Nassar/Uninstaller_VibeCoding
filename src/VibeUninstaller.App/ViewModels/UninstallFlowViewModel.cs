@@ -121,7 +121,7 @@ public sealed partial class UninstallFlowViewModel : ObservableObject
 
         var progress = new Progress<UninstallProgress>(update =>
         {
-            StageText = DescribeStage(update.Stage);
+            StageText = UninstallText.DescribeStage(update.Stage);
             if (!string.IsNullOrWhiteSpace(update.Detail))
             {
                 AddLog(update.Detail);
@@ -316,19 +316,6 @@ public sealed partial class UninstallFlowViewModel : ObservableObject
             Log.RemoveAt(0);
         }
     }
-
-    private static string DescribeStage(UninstallStage stage) => stage switch
-    {
-        UninstallStage.Preparing => "Preparing...",
-        UninstallStage.Snapshotting => "Capturing the system state (this takes a few seconds)...",
-        UninstallStage.RunningUninstaller => "Running the uninstaller...",
-        UninstallStage.WaitingForProcesses => "Waiting for the uninstaller...",
-        UninstallStage.Rescanning => "Re-scanning the system...",
-        UninstallStage.Classifying => "Scoring leftovers...",
-        UninstallStage.Removing => "Removing...",
-        UninstallStage.Completed => "Finished",
-        _ => "Working...",
-    };
 
     private static string BuildRunSummary(UninstallRunResult run, LeftoverScanResult? scan)
     {

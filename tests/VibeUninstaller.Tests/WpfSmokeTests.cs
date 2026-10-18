@@ -1,5 +1,7 @@
 using System.Windows;
+using System.Windows.Media;
 using VibeUninstaller.App;
+using VibeUninstaller.App.Services;
 using VibeUninstaller.App.ViewModels;
 using VibeUninstaller.App.Views;
 using VibeUninstaller.Core.Execution;
@@ -10,7 +12,9 @@ namespace VibeUninstaller.Tests;
 /// <summary>
 /// Loading XAML is the only way to catch missing StaticResource keys, wrong
 /// converter types and broken template bindings, so this test really loads the
-/// application resources and constructs both windows on an STA thread.
+/// application resources and constructs every window on an STA thread. It also
+/// swaps every theme to prove that the dictionaries parse and that a live
+/// switch reaches a loaded window.
 /// </summary>
 public class WpfSmokeTests
 {
@@ -20,6 +24,7 @@ public class WpfSmokeTests
         Exception? failure = null;
         string stage = "start";
         UninstallFlowViewModel? flowViewModel = null;
+        BatchUninstallViewModel? batchViewModel = null;
 
         var thread = new Thread(() =>
         {
@@ -37,6 +42,31 @@ public class WpfSmokeTests
 
                 stage = "MainWindow";
                 var main = new MainWindow();
+
+                stage = "theme switching";
+                foreach (var option in ThemeCatalog.All)
+                {
+                    ThemeManager.Apply(application.Resources, option.Id, persist: false);
+                    if (application.TryFindResource("PanelBackground") is not SolidColorBrush)
+                    {
+                        throw new InvalidOperationException($"Theme '{option.Id}' is missing a brush.");
+                    }
+
+                    if (main.Background is not SolidColorBrush windowBackground)
+                    {
+                        throw new InvalidOperationException($"The window lost its background in '{option.Id}'.");
+                    }
+
+                    var expected = ((SolidColorBrush)application.Resources["AppBackground"]).Color;
+                    if (windowBackground.Color != expected)
+                    {
+                        throw new InvalidOperationException(
+                            $"Window.Background ({windowBackground.Color}) ignored theme '{option.Id}' ({expected}).");
+                    }
+                }
+
+                // Leave the default theme active for the rest of the stages.
+                ThemeManager.Apply(application.Resources, ThemeCatalog.DefaultId, persist: false);
                 main.Close();
 
                 stage = "UninstallFlowWindow";
@@ -46,6 +76,11 @@ public class WpfSmokeTests
                 stage = "ScanPreviewWindow";
                 var preview = new ScanPreviewWindow(TestData.SevenZip());
                 preview.Close();
+
+                stage = "BatchUninstallWindow";
+                var batch = new BatchUninstallWindow(new[] { TestData.SevenZip(), TestData.MsiApp() });
+                batchViewModel = batch.ViewModel;
+                batch.Close();
 
                 stage = "review state with leftovers";
                 flow.ViewModel.State = FlowState.Review;
@@ -75,5 +110,8 @@ public class WpfSmokeTests
         Assert.NotNull(flowViewModel);
         Assert.Equal(FlowState.Review, flowViewModel!.State);
         Assert.Single(flowViewModel.Leftovers);
+        Assert.NotNull(batchViewModel);
+        Assert.Equal(2, batchViewModel!.Items.Count);
+        Assert.Equal(ThemeCatalog.DefaultId, ThemeManager.Current.Id);
     }
 }

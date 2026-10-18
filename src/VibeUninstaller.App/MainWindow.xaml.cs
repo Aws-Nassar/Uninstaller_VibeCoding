@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using VibeUninstaller.App.ViewModels;
 using VibeUninstaller.App.Views;
@@ -16,16 +17,59 @@ public partial class MainWindow : Window
 
     private MainViewModel ViewModel => (MainViewModel)DataContext;
 
-    /// <summary>Right-clicking a row selects it so the context menu acts on it.</summary>
+    /// <summary>Keeps the multi-selection in the view model for batch actions.</summary>
+    private void AppsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        ViewModel.SetSelection(AppsGrid.SelectedItems.OfType<AppItemViewModel>());
+
+    /// <summary>
+    /// Right-clicking a row keeps an existing multi-selection intact; clicking a
+    /// row outside the selection selects just that row so the context menu is clear.
+    /// </summary>
     private void Row_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is DataGridRow row)
+        if (sender is DataGridRow row && !row.IsSelected)
         {
+            AppsGrid.SelectedItems.Clear();
             row.IsSelected = true;
         }
     }
 
+    /// <summary>Left-clicking the theme button opens its theme list.</summary>
+    private void Theme_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { ContextMenu: { } menu } button)
+        {
+            menu.PlacementTarget = button;
+            menu.Placement = PlacementMode.Bottom;
+            menu.IsOpen = true;
+        }
+    }
+
     private void Uninstall_Click(object sender, RoutedEventArgs e) => _ = UninstallAsync(ViewModel.SelectedApp);
+
+    private async void UninstallSelected_Click(object sender, RoutedEventArgs e)
+    {
+        var selected = ViewModel.SelectedApps;
+        if (selected.Count == 0)
+        {
+            ShowSelectHint();
+            return;
+        }
+
+        if (selected.Count == 1)
+        {
+            await UninstallAsync(selected[0]);
+            return;
+        }
+
+        var window = new BatchUninstallWindow(selected.Select(item => item.App).ToList()) { Owner = this };
+        window.ShowDialog();
+
+        if (window.ViewModel.SomethingChanged)
+        {
+            await ViewModel.RefreshAsync();
+        }
+    }
 
     private async void Scan_Click(object sender, RoutedEventArgs e)
     {

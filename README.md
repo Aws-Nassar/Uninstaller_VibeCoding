@@ -17,6 +17,9 @@ Early development. The scope of the current milestone (M0 + M1) is:
 |------|-------|
 | Discover installed apps (registry HKLM/HKCU, 32/64-bit views, Store/MSIX, Steam) | Done |
 | WPF GUI: library views (Programs / Store / Updates / Everything), search, quick filters, sortable list, details pane with actions | Done |
+| Color themes (Dark, Light, Midnight, Ocean) switchable at runtime and remembered between runs | Done |
+| Batch uninstall: Ctrl/Shift multi-select, each uninstaller runs in turn, one combined leftover review | Done |
+| Application icons read from each installer's `DisplayIcon` (letter tiles as fallback), branded window/taskbar/exe icon | Done |
 | Fingerprint-only leftover preview from the GUI (changes nothing) | Done |
 | Run the app's own uninstaller (process-tree waiting, exit-code interpretation, UAC) | Done |
 | Before/after snapshots of files and registry + explainable leftover scoring | Done |
@@ -24,7 +27,7 @@ Early development. The scope of the current milestone (M0 + M1) is:
 | Removal: Recycle Bin first, `.reg` backup before every key deletion | Done |
 | Static leftover scan without running the uninstaller (`vibe scan`) | Done |
 | CLI with JSON output and stable exit codes | Done |
-| Portable self-contained releases (GUI + CLI ZIPs on version tags) | Done |
+| Releases: Inno Setup installer with Start Menu and optional desktop shortcuts, plus portable single-file executables | Done |
 | Install Watch, quarantine vault + undo, MFT/USN index, localization | Planned (M2-M6) |
 
 See [ROADMAP.md](ROADMAP.md) for the full plan and milestone status.
@@ -33,15 +36,18 @@ ROADMAP statuses are the source of truth for what is actually implemented today.
 
 ## Download
 
-Portable, self-contained win-x64 builds are attached to every
+Self-contained win-x64 builds are attached to every
 [release](https://github.com/Aws-Nassar/Uninstaller_VibeCoding/releases):
 
-| Archive | Contents |
-|---------|----------|
-| `VibeUninstaller-<version>-win-x64.zip` | The GUI. Unzip, run `VibeUninstaller.exe`, accept the UAC prompt. |
-| `vibe-<version>-win-x64.zip` | The `vibe` CLI for scripts and terminal use. |
+| Download | What it is |
+|----------|------------|
+| `VibeUninstaller-<version>-setup.exe` | The installer. Adds a Start Menu entry, an optional desktop shortcut and an uninstaller. Recommended for most users. |
+| `VibeUninstaller-<version>-portable.exe` | The GUI as one portable file. Nothing is installed; run it from anywhere. |
+| `vibe-<version>-portable.exe` | The `vibe` CLI for scripts and terminal use. |
 
 No .NET runtime installation is needed: the runtime is bundled into the executables.
+The files are attached directly because each one is already a single self-contained
+executable — there is no longer anything to unpack from a ZIP.
 
 > The executables are not code-signed yet, so the first launch can show SmartScreen's
 > "Windows protected your PC" dialog. Choose *More info* and then *Run anyway* if you
@@ -63,7 +69,9 @@ Deleting leftovers is the dangerous part of an uninstaller, so the rules are str
 
 - Windows 10 2004 (build 19041) or newer
 - To build from source: [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- The released ZIPs are self-contained and do not need a .NET installation.
+- The released setup and portable executables are self-contained and do not need a .NET
+  installation. Building the setup executable additionally needs
+  [Inno Setup 6](https://jrsoftware.org/isinfo.php) (the release workflow installs it).
 
 ## Build and run
 
@@ -99,9 +107,11 @@ Full reference: [docs/CLI.md](docs/CLI.md).
 src/VibeUninstaller.Core        # UI-agnostic logic: fingerprints, scoring, command lines
 src/VibeUninstaller.Snapshot    # registry and file system snapshots + diff
 src/VibeUninstaller.Windows     # Win32 specifics: providers, uninstall runner, removal
-src/VibeUninstaller.App         # WPF user interface
+src/VibeUninstaller.App         # WPF user interface (themes in Resources/Themes/*.xaml)
 src/VibeUninstaller.Cli         # `vibe` command line tool
 tests/VibeUninstaller.Tests     # xUnit tests, including a XAML load smoke test
+assets/branding/app.ico         # application icon for the executables and shortcuts
+installer/VibeUninstaller.iss   # Inno Setup script used by the release workflow
 AGENTS.md                       # instructions for coding agents working on this repo
 ```
 

@@ -8,7 +8,13 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RootNamespace>VibeUninstaller.App</RootNamespace>
     <AssemblyName>VibeUninstaller</AssemblyName>
+    <ApplicationIcon>..\..\assets\branding\app.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Also embedded so windows can set Window.Icon from a pack URI. -->
+    <Resource Include="..\..\assets\branding\app.ico" Link="Assets\app.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\VibeUninstaller.Core\VibeUninstaller.Core.csproj" />

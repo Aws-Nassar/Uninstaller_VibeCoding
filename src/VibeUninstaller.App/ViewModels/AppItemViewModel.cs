@@ -6,7 +6,7 @@ using VibeUninstaller.Core.Models;
 namespace VibeUninstaller.App.ViewModels;
 
 /// <summary>One row in the application list.</summary>
-public sealed class AppItemViewModel
+public sealed partial class AppItemViewModel : ObservableObject
 {
     private static readonly string[] Palette =
     {
@@ -29,6 +29,13 @@ public sealed class AppItemViewModel
     public InstalledApp App { get; }
 
     public InstallerInfo Installer { get; }
+
+    /// <summary>
+    /// The real application icon, filled in asynchronously by the main view
+    /// model; null means the lettermark tile is shown instead.
+    /// </summary>
+    [ObservableProperty]
+    private ImageSource? _icon;
 
     public string DisplayName => App.DisplayName;
 

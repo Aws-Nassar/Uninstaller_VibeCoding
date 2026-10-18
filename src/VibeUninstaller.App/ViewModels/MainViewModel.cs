@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using VibeUninstaller.App.Services;
 using VibeUninstaller.Core.Models;
 using VibeUninstaller.Core.Reporting;
 using VibeUninstaller.Windows.Providers;
@@ -14,6 +16,11 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly List<AppItemViewModel> _allApps = new();
 
     public ObservableCollection<AppItemViewModel> Apps { get; } = new();
+
+    public IReadOnlyList<ThemeOption> Themes => ThemeCatalog.All;
+
+    [ObservableProperty]
+    private string _themeId = ThemeManager.Current.Id;
 
     [ObservableProperty]
     private string _searchText = string.Empty;
@@ -42,6 +49,10 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private AppItemViewModel? _selectedApp;
 
+    /// <summary>Every selected row; more than one enables the batch uninstaller.</summary>
+    [ObservableProperty]
+    private List<AppItemViewModel> _selectedApps = new();
+
     [ObservableProperty]
     private int _programsCount;
 
@@ -59,9 +70,35 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _elevationText = Windows.Execution.AdminCheck.IsElevated
         ? "Administrator"
-        : "Standard user — restart as administrator for full cleanup";
+        : "Standard user";
+
+    public string ElevationHint { get; } = Windows.Execution.AdminCheck.IsElevated
+        ? "Running with full cleanup rights"
+        : "Restart as administrator for full cleanup";
 
     public string VersionText { get; } = FormatVersion();
+
+    public int SelectedCount => SelectedApps.Count;
+
+    public bool HasMultiSelection => SelectedApps.Count > 1;
+
+    partial void OnSelectedAppsChanged(List<AppItemViewModel> value)
+    {
+        OnPropertyChanged(nameof(SelectedCount));
+        OnPropertyChanged(nameof(HasMultiSelection));
+    }
+
+    /// <summary>Keeps the view model in sync with the DataGrid selection.</summary>
+    public void SetSelection(IEnumerable<AppItemViewModel> items)
+    {
+        var list = items.ToList();
+        if (list.Count == SelectedApps.Count && list.SequenceEqual(SelectedApps))
+        {
+            return;
+        }
+
+        SelectedApps = list;
+    }
 
     /// <summary>True when the search box should show its placeholder.</summary>
     public bool IsSearchEmpty => string.IsNullOrWhiteSpace(SearchText);
@@ -77,6 +114,26 @@ public sealed partial class MainViewModel : ObservableObject
     partial void OnLargeAppsOnlyChanged(bool value) => ApplyFilter();
 
     partial void OnRecentlyInstalledOnlyChanged(bool value) => ApplyFilter();
+
+    [RelayCommand]
+    private void SetTheme(ThemeOption? option)
+    {
+        if (option is null)
+        {
+            return;
+        }
+
+        if (Application.Current?.Resources is { } resources)
+        {
+            ThemeManager.Apply(resources, option.Id);
+        }
+
+        ThemeId = ThemeManager.Current.Id;
+
+        // Tier pills resolve brushes when the rows are created, so they are
+        // rebuilt on a theme change.
+        ApplyFilter();
+    }
 
     [RelayCommand]
     public async Task RefreshAsync()
@@ -102,6 +159,7 @@ public sealed partial class MainViewModel : ObservableObject
             WarningText = result.Warnings.Count > 0 ? string.Join(" · ", result.Warnings) : string.Empty;
             UpdateViewCounts();
             ApplyFilter();
+            QueueIconLoads();
         }
         catch (Exception exception)
         {
@@ -163,6 +221,39 @@ public sealed partial class MainViewModel : ObservableObject
             ? "nothing matches the current filters"
             : $"{SizeFormat.Bytes(query.Sum(app => app.EstimatedSizeBytes ?? 0))} estimated on disk";
         SelectedApp = null;
+    }
+
+    /// <summary>
+    /// Extracts real icons listed in the registry in the background; each
+    /// extraction hits the disk, so it must stay off the UI thread.
+    /// </summary>
+    private void QueueIconLoads()
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null)
+        {
+            return;
+        }
+
+        var pending = _allApps
+            .Where(item => item.Icon is null && !string.IsNullOrWhiteSpace(item.App.DisplayIcon))
+            .ToArray();
+        if (pending.Length == 0)
+        {
+            return;
+        }
+
+        _ = Task.Run(() =>
+        {
+            foreach (var item in pending)
+            {
+                var icon = IconCache.Get(item.App.DisplayIcon);
+                if (icon is not null)
+                {
+                    dispatcher.Invoke(() => item.Icon = icon);
+                }
+            }
+        });
     }
 
     private static string FormatVersion()

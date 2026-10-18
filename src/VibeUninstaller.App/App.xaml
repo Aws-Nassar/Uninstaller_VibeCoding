@@ -5,6 +5,8 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
+        <!-- ThemeManager swaps the first dictionary at runtime. -->
+        <ResourceDictionary Source="Resources/Themes/Dark.xaml" />
         <ResourceDictionary Source="Resources/Theme.xaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>

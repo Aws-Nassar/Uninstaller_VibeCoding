@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:conv="clr-namespace:VibeUninstaller.App.Converters"
         Title="Uninstall" Height="700" Width="900" MinHeight="520" MinWidth="720"
-        WindowStartupLocation="CenterOwner">
+        Icon="pack://application:,,,/VibeUninstaller;component/Assets/app.ico" Style="{StaticResource WindowStyle}" WindowStartupLocation="CenterOwner">
 
   <Window.Resources>
     <conv:BytesToSizeConverter x:Key="SizeConverter" />
@@ -29,14 +29,14 @@
     <Grid Grid.Row="1">
 
       <!-- Confirm -->
-      <Border Padding="18" CornerRadius="10" Background="{StaticResource PanelBackground}"
-              BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+      <Border Padding="18" CornerRadius="10" Background="{DynamicResource PanelBackground}"
+              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
               Visibility="{Binding StateName, Converter={StaticResource StateVisibility}, ConverterParameter=Confirm}">
         <StackPanel>
           <TextBlock Text="VibeUninstaller runs the application's own uninstaller first, then compares the system before and after to find what was left behind."
                      TextWrapping="Wrap" />
 
-          <Border Margin="0,14,0,0" Padding="12" CornerRadius="8" Background="{StaticResource PanelAltBackground}">
+          <Border Margin="0,14,0,0" Padding="12" CornerRadius="8" Background="{DynamicResource PanelAltBackground}">
             <StackPanel>
               <TextBlock Style="{StaticResource CaptionText}">
                 <Run Text="Installer technology: " /><Run Text="{Binding Installer.FamilyLabel, Mode=OneWay}" />
@@ -61,8 +61,8 @@
       </Border>
 
       <!-- Running -->
-      <Border Padding="18" CornerRadius="10" Background="{StaticResource PanelBackground}"
-              BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+      <Border Padding="18" CornerRadius="10" Background="{DynamicResource PanelBackground}"
+              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
               Visibility="{Binding StateName, Converter={StaticResource StateVisibility}, ConverterParameter=Running}">
         <Grid>
           <Grid.RowDefinitions>
@@ -73,7 +73,7 @@
           <TextBlock Grid.Row="0" Text="{Binding StageText}" Style="{StaticResource SectionText}" TextWrapping="Wrap" />
           <ProgressBar Grid.Row="1" Height="4" Margin="0,12,0,12" IsIndeterminate="True" />
           <ListBox Grid.Row="2" x:Name="LogList" ItemsSource="{Binding Log}" FontFamily="Consolas" FontSize="11"
-                   Background="#FF14161B" />
+                   Background="{DynamicResource LogBackgroundBrush}" />
         </Grid>
       </Border>
 
@@ -117,19 +117,19 @@
 
                 <Border Grid.Column="1" MinWidth="52" Height="18" CornerRadius="9" Margin="10,2,10,0" VerticalAlignment="Top"
                         Background="{Binding Tier, Converter={StaticResource TierBrush}}">
-                  <TextBlock Text="{Binding TierLabel}" FontSize="10" Foreground="#FF10131A" FontWeight="SemiBold"
+                  <TextBlock Text="{Binding TierLabel}" FontSize="10" Foreground="{DynamicResource TierInkBrush}" FontWeight="SemiBold"
                              HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
 
                 <StackPanel Grid.Column="2">
                   <TextBlock Text="{Binding Reason}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" />
-                  <TextBlock Text="{Binding Path}" FontSize="11" Foreground="{StaticResource MutedTextBrush}"
+                  <TextBlock Text="{Binding Path}" FontSize="11" Foreground="{DynamicResource MutedTextBrush}"
                              TextWrapping="Wrap" Margin="0,2,0,0" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="3" HorizontalAlignment="Right" MinWidth="70">
                   <TextBlock Text="{Binding KindLabel}" FontSize="10" HorizontalAlignment="Right"
-                             Foreground="{StaticResource MutedTextBrush}" />
+                             Foreground="{DynamicResource MutedTextBrush}" />
                   <TextBlock Text="{Binding SizeBytes, Converter={StaticResource SizeConverter}}" FontSize="11"
                              HorizontalAlignment="Right" Margin="0,2,0,0" />
                 </StackPanel>
@@ -140,8 +140,8 @@
       </Grid>
 
       <!-- Removing -->
-      <Border Padding="18" CornerRadius="10" Background="{StaticResource PanelBackground}"
-              BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+      <Border Padding="18" CornerRadius="10" Background="{DynamicResource PanelBackground}"
+              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
               Visibility="{Binding StateName, Converter={StaticResource StateVisibility}, ConverterParameter=Removing}">
         <Grid>
           <Grid.RowDefinitions>
@@ -151,13 +151,13 @@
           </Grid.RowDefinitions>
           <TextBlock Grid.Row="0" Text="{Binding StageText}" Style="{StaticResource SectionText}" />
           <ProgressBar Grid.Row="1" Height="4" Margin="0,12,0,12" IsIndeterminate="True" />
-          <ListBox Grid.Row="2" ItemsSource="{Binding Log}" FontFamily="Consolas" FontSize="11" Background="#FF14161B" />
+          <ListBox Grid.Row="2" ItemsSource="{Binding Log}" FontFamily="Consolas" FontSize="11" Background="{DynamicResource LogBackgroundBrush}" />
         </Grid>
       </Border>
 
       <!-- Done -->
-      <Border Padding="18" CornerRadius="10" Background="{StaticResource PanelBackground}"
-              BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+      <Border Padding="18" CornerRadius="10" Background="{DynamicResource PanelBackground}"
+              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
               Visibility="{Binding StateName, Converter={StaticResource StateVisibility}, ConverterParameter=Done}">
         <StackPanel>
           <TextBlock Text="{Binding ResultSummary}" TextWrapping="Wrap" />
@@ -166,10 +166,10 @@
           <Button Content="Open leftovers backup folder" Margin="0,14,0,0" HorizontalAlignment="Left"
                   Command="{Binding OpenVaultCommand}" />
 
-          <Border Margin="0,14,0,0" Padding="12" CornerRadius="8" Background="#FF2A1A1A"
-                  BorderBrush="{StaticResource DangerBrush}" BorderThickness="1"
+          <Border Margin="0,14,0,0" Padding="12" CornerRadius="8" Background="{DynamicResource DangerPanelBrush}"
+                  BorderBrush="{DynamicResource DangerBrush}" BorderThickness="1"
                   Visibility="{Binding ErrorText, Converter={StaticResource EmptyStringToVisibility}}">
-            <TextBlock Text="{Binding ErrorText}" TextWrapping="Wrap" Foreground="{StaticResource DangerBrush}" FontSize="12" />
+            <TextBlock Text="{Binding ErrorText}" TextWrapping="Wrap" Foreground="{DynamicResource DangerBrush}" FontSize="12" />
           </Border>
         </StackPanel>
       </Border>

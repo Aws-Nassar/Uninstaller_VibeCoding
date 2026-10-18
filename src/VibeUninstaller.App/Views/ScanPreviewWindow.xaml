@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:conv="clr-namespace:VibeUninstaller.App.Converters"
         Title="Leftover scan" Height="640" Width="860" MinHeight="480" MinWidth="700"
-        WindowStartupLocation="CenterOwner">
+        Icon="pack://application:,,,/VibeUninstaller;component/Assets/app.ico" Style="{StaticResource WindowStyle}" WindowStartupLocation="CenterOwner">
 
   <Window.Resources>
     <conv:BytesToSizeConverter x:Key="SizeConverter" />
@@ -63,19 +63,19 @@
 
                 <Border Grid.Column="0" MinWidth="52" Height="18" CornerRadius="9" Margin="0,2,10,0"
                         VerticalAlignment="Top" Background="{Binding Tier, Converter={StaticResource TierBrush}}">
-                  <TextBlock Text="{Binding TierLabel}" FontSize="10" Foreground="#FF10131A" FontWeight="SemiBold"
+                  <TextBlock Text="{Binding TierLabel}" FontSize="10" Foreground="{DynamicResource TierInkBrush}" FontWeight="SemiBold"
                              HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
 
                 <StackPanel Grid.Column="1">
                   <TextBlock Text="{Binding Reason}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" />
-                  <TextBlock Text="{Binding Path}" FontSize="11" Foreground="{StaticResource MutedTextBrush}"
+                  <TextBlock Text="{Binding Path}" FontSize="11" Foreground="{DynamicResource MutedTextBrush}"
                              TextWrapping="Wrap" Margin="0,2,0,0" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" HorizontalAlignment="Right" MinWidth="70">
                   <TextBlock Text="{Binding KindLabel}" FontSize="10" HorizontalAlignment="Right"
-                             Foreground="{StaticResource MutedTextBrush}" />
+                             Foreground="{DynamicResource MutedTextBrush}" />
                   <TextBlock Text="{Binding SizeBytes, Converter={StaticResource SizeConverter}}" FontSize="11"
                              HorizontalAlignment="Right" Margin="0,2,0,0" />
                 </StackPanel>

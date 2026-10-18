@@ -15,7 +15,7 @@ env:
 
 jobs:
   release:
-    name: Portable build (win-x64)
+    name: Release build (win-x64)
     runs-on: windows-latest
     timeout-minutes: 45
 
@@ -82,12 +82,28 @@ jobs:
           & $exe version
           & $exe list --json --limit 2 | Out-String | Write-Host
 
-      - name: Package ZIPs
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Build the setup executable
         shell: pwsh
         run: |
-          Compress-Archive -Path artifacts/gui/* -DestinationPath "artifacts/VibeUninstaller-$env:VIBE_VERSION-win-x64.zip" -CompressionLevel Optimal
-          Compress-Archive -Path artifacts/cli/* -DestinationPath "artifacts/vibe-$env:VIBE_VERSION-win-x64.zip" -CompressionLevel Optimal
-          Get-ChildItem artifacts/*.zip | Select-Object Name, Length
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { throw "ISCC.exe was not found at $iscc" }
+          & $iscc "/DAppVersion=$env:VIBE_VERSION" "installer\VibeUninstaller.iss"
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
+          Get-ChildItem artifacts/installer | Select-Object Name, Length
+
+      - name: Stage release files
+        shell: pwsh
+        run: |
+          $v = $env:VIBE_VERSION
+          New-Item -ItemType Directory -Force artifacts/release | Out-Null
+          Copy-Item artifacts/gui/VibeUninstaller.exe "artifacts/release/VibeUninstaller-$v-portable.exe"
+          Copy-Item artifacts/cli/vibe.exe "artifacts/release/vibe-$v-portable.exe"
+          Copy-Item "artifacts/installer/VibeUninstaller-$v-setup.exe" "artifacts/release/VibeUninstaller-$v-setup.exe"
+          Get-ChildItem artifacts/release | Select-Object Name, Length
 
       - name: Create GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
@@ -98,13 +114,14 @@ jobs:
           gh release create $env:GITHUB_REF_NAME `
             --title "VibeUninstaller $env:VIBE_VERSION" `
             --generate-notes `
-            "artifacts/VibeUninstaller-$env:VIBE_VERSION-win-x64.zip" `
-            "artifacts/vibe-$env:VIBE_VERSION-win-x64.zip"
+            "artifacts/release/VibeUninstaller-$env:VIBE_VERSION-setup.exe" `
+            "artifacts/release/VibeUninstaller-$env:VIBE_VERSION-portable.exe" `
+            "artifacts/release/vibe-$env:VIBE_VERSION-portable.exe"
 
       - name: Upload build artifacts (manual runs only)
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: VibeUninstaller-portable-${{ env.VIBE_VERSION }}
-          path: artifacts/*.zip
+          name: VibeUninstaller-${{ env.VIBE_VERSION }}
+          path: artifacts/release/*
           if-no-files-found: error

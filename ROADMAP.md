@@ -59,11 +59,13 @@ and IObit Uninstaller, is fully free (MIT), and adds things none of them offer
 - Logging, settings store, design docs (see `docs/ARCHITECTURE.md`).
 - Acceptance: `dotnet build` and `dotnet test` green in CI; empty shell app launches.
 
-Status: solution builds with zero warnings, 270 unit tests green, CI workflow in
+Status: solution builds with zero warnings, 312 unit tests green, CI workflow in
 `.github/workflows/ci.yml` publishes the GUI and the CLI and runs `vibe version` as a smoke
-test. `.github/workflows/release.yml` turns a `v*` tag into a GitHub release with portable,
-self-contained win-x64 ZIPs for the GUI and the CLI (the first one is `v0.1.0`).
-Logging and the settings store are moved to M6 where the UI needs them.
+test. `.github/workflows/release.yml` turns a `v*` tag into a GitHub release with an Inno
+Setup installer, portable single-file executables and the self-contained win-x64 GUI/CLI
+(the first one was `v0.1.0`; `v0.2.0` added the installer). The settings store is now a
+tiny JSON file (`%AppData%\VibeUninstaller\settings.json`) that only remembers the color
+theme; structured logging is still deferred to M6.
 
 ### M1 — MVP: list, uninstall, clean (matches Revo Free) — done
 - Discover installed apps from all Uninstall registry keys (HKLM/HKCU, 32/64-bit views)
@@ -78,6 +80,11 @@ Logging and the settings store are moved to M6 where the UI needs them.
 
 Status: all of the above is implemented, plus the fingerprint based static scan (`vibe scan`),
 a fingerprint-only leftover preview inside the GUI, and the CLI with JSON output (`docs/CLI.md`).
+Added after the first release: four switchable color themes (Dark, Light, Midnight, Ocean) with
+the choice persisted between runs, batch uninstall (Ctrl/Shift multi-select, each uninstaller in
+turn, one combined leftover review), real application icons read from each installer's
+`DisplayIcon` with letter tiles as the fallback, and a branded application icon for the window,
+taskbar and executable.
 The acceptance run on real applications (Firefox, 7-Zip, LibreOffice) is still open and is
 tracked as the first item of M2.
 
@@ -101,6 +108,10 @@ tracked as the first item of M2.
 - Uninstall history log (JSON) with everything that was removed and where backups live.
 - Acceptance: a PowerShell script can silently uninstall 10 apps and parse JSON results.
 
+Status: partially delivered early in the GUI — a serial batch queue with multi-select, silent
+switching when the installer family is known, honest per-app status and one combined review of
+every leftover. Parallelism, per-app overrides and the CLI batch story are still open.
+
 ### M4 — Safety & reversibility (beats Revo Pro)
 - Quarantine vault: files are moved, not deleted; registry changes saved as restore scripts.
 - Undo: restore the last N uninstall sessions in one click (files + keys + services + tasks).
@@ -122,9 +133,13 @@ tracked as the first item of M2.
 
 ### M6 — Release & polish
 - Modern Fluent UI (dark/light), full Arabic RTL + English, accessibility.
-- MSI/MSIX installer + portable ZIP, winget manifest, optional auto-update.
+- MSI/MSIX installer (an Inno Setup installer plus portable single-file executables already
+  ship since `v0.2.0`), winget manifest, optional auto-update.
 - Code signing, security review, performance pass (targets below), docs + website README.
 - Acceptance: signed release artifacts, winget submission, published benchmark numbers.
+
+Status: four color themes and the setup installer shipped early with `v0.2.0`. MSI/MSIX,
+winget, code signing, Arabic RTL, accessibility and the performance pass remain open.
 
 ## 4. Performance targets
 

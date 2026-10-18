@@ -1,0 +1,24 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Midnight (OLED black with a violet accent) -->
+  <SolidColorBrush x:Key="AppBackground" Color="#FF050508" />
+  <SolidColorBrush x:Key="PanelBackground" Color="#FF0C0C11" />
+  <SolidColorBrush x:Key="PanelAltBackground" Color="#FF16161E" />
+  <SolidColorBrush x:Key="BorderBrush" Color="#FF262633" />
+  <SolidColorBrush x:Key="AccentBrush" Color="#FF8B5CF6" />
+  <SolidColorBrush x:Key="AccentHoverBrush" Color="#FFA78BFA" />
+  <SolidColorBrush x:Key="DangerBrush" Color="#FFEF4444" />
+  <SolidColorBrush x:Key="DangerPanelBrush" Color="#FF2A1414" />
+  <SolidColorBrush x:Key="SafeBrush" Color="#FF22C55E" />
+  <SolidColorBrush x:Key="ModerateBrush" Color="#FFEAB308" />
+  <SolidColorBrush x:Key="AdvancedBrush" Color="#FF6B7280" />
+  <SolidColorBrush x:Key="TextBrush" Color="#FFF3F4F6" />
+  <SolidColorBrush x:Key="MutedTextBrush" Color="#FF9CA3AF" />
+  <SolidColorBrush x:Key="RowHoverBrush" Color="#FF1D1D27" />
+  <SolidColorBrush x:Key="AlternatingRowBackgroundBrush" Color="#FF101018" />
+  <SolidColorBrush x:Key="OnAccentBrush" Color="#FFFFFFFF" />
+  <SolidColorBrush x:Key="TierInkBrush" Color="#FF0B1018" />
+  <SolidColorBrush x:Key="LogBackgroundBrush" Color="#FF08080C" />
+
+</ResourceDictionary>
