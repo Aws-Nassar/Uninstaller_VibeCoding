@@ -125,6 +125,7 @@ public static class Program
         ui.Line("  --yes                       Do not ask for confirmation (required in scripts)");
         ui.Line("  --dry-run                   Show the command and the leftovers, change nothing");
         ui.Line("  --timeout <minutes>         Give up on the uninstaller after n minutes (default: 30)");
+        ui.Line("  --no-registry-backup        Delete registry keys without writing .reg backups");
         ui.Line();
         ui.Line("EXIT CODES");
         ui.Line("  0 success   1 error   2 not found   3 ambiguous   4 needs elevation");

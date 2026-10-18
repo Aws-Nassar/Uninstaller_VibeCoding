@@ -37,6 +37,13 @@ public sealed partial class AppItemViewModel : ObservableObject
     [ObservableProperty]
     private ImageSource? _icon;
 
+    /// <summary>Why no icon was found; shown on the lettermark tile.</summary>
+    [ObservableProperty]
+    private string _iconReason = "Looking for an icon…";
+
+    /// <summary>Set once the icon lookup ran, so failed lookups are not repeated.</summary>
+    public bool IconResolved { get; set; }
+
     public string DisplayName => App.DisplayName;
 
     public string Publisher => string.IsNullOrWhiteSpace(App.Publisher) ? "—" : App.Publisher;

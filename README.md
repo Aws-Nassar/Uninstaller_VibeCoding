@@ -19,12 +19,12 @@ Early development. The scope of the current milestone (M0 + M1) is:
 | WPF GUI: library views (Programs / Store / Updates / Everything), search, quick filters, sortable list, details pane with actions | Done |
 | Color themes (Dark, Light, Midnight, Ocean) switchable at runtime and remembered between runs | Done |
 | Batch uninstall: Ctrl/Shift multi-select, each uninstaller runs in turn, one combined leftover review | Done |
-| Application icons read from each installer's `DisplayIcon` (letter tiles as fallback), branded window/taskbar/exe icon | Done |
+| Application icons: the installer's `DisplayIcon`, otherwise the app's own executable in its install folder, otherwise the Store package logo — with the reason shown on the letter tiles that remain | Done |
 | Fingerprint-only leftover preview from the GUI (changes nothing) | Done |
 | Run the app's own uninstaller (process-tree waiting, exit-code interpretation, UAC) | Done |
 | Before/after snapshots of files and registry + explainable leftover scoring | Done |
 | Review screen with risk tiers (safe / moderate / advanced) and reasons | Done |
-| Removal: Recycle Bin first, `.reg` backup before every key deletion | Done |
+| Removal: Recycle Bin first, `.reg` backup before every key deletion (on by default, can be turned off deliberately) | Done |
 | Static leftover scan without running the uninstaller (`vibe scan`) | Done |
 | CLI with JSON output and stable exit codes | Done |
 | Releases: Inno Setup installer with Start Menu and optional desktop shortcuts, plus portable single-file executables | Done |
@@ -61,7 +61,9 @@ Deleting leftovers is the dangerous part of an uninstaller, so the rules are str
 2. **Deny list in code.** Windows, Program Files, the package cache, `AppData\Temp` and
    Microsoft's own registry branches can never be proposed, no matter what the scan finds.
 3. **Recycle Bin first.** Files are recycled, not destroyed.
-4. **Registry backups.** Every key is exported to `.reg` before it is deleted.
+4. **Registry backups.** Every key is exported to `.reg` before it is deleted. This is on by
+   default and can only be turned off deliberately, per run (review screen checkbox, or
+   `--no-registry-backup`); the CLI then reports `registryBackupSkipped`.
 5. **Nothing happens silently.** The CLI refuses to remove anything without `--yes`, and the GUI
    asks for confirmation.
 

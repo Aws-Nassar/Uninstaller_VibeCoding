@@ -14,7 +14,7 @@ internal static class UninstallCommand
 {
     private static readonly string[] ValueOptions = { "timeout", "min-tier" };
     private static readonly string[] BoolOptions =
-        { "json", "silent", "no-scan", "clean", "yes", "dry-run", "include-system" };
+        { "json", "silent", "no-scan", "clean", "yes", "dry-run", "include-system", "no-registry-backup" };
 
     public static async Task<int> RunAsync(string[] args, ConsoleUi ui, CancellationToken cancellationToken)
     {
@@ -31,6 +31,7 @@ internal static class UninstallCommand
 
         var dryRun = options.Has("dry-run");
         var clean = options.Has("clean") && !dryRun;
+        var removalOptions = new LeftoverRemovalOptions { BackupRegistryKeys = !options.Has("no-registry-backup") };
         var minTier = ConsoleUi.ParseTier(options.ValueOr("min-tier", "safe"));
         var matchOptions = AppMatchOptions.FromFlags(options.Has("include-system"), true, true);
 
@@ -135,14 +136,18 @@ internal static class UninstallCommand
         }
 
         var removal = await new RemovalExecutor()
-            .RemoveAsync(app, selected, new Progress<string>(ui.Muted), cancellationToken)
+            .RemoveAsync(app, selected, new Progress<string>(ui.Muted), cancellationToken, removalOptions)
             .ConfigureAwait(false);
 
         ui.Header("Removal result");
         ui.Line($"  Files recycled:   {removal.FilesRemoved:N0} ({SizeFormat.Bytes(removal.BytesRemoved)})");
         ui.Line($"  Files failed:     {removal.FilesFailed:N0}");
         ui.Line($"  Registry keys:    {removal.RegistryRemoved:N0} removed, {removal.RegistryFailed:N0} failed");
-        if (removal.VaultPath is not null)
+        if (removal.RegistryBackupSkipped)
+        {
+            ui.Warn("  Registry backups: skipped (--no-registry-backup)");
+        }
+        else if (removal.VaultPath is not null)
         {
             ui.Muted($"  Registry backups: {removal.VaultPath}");
         }
@@ -228,8 +233,9 @@ internal static class UninstallCommand
         RemovalReport? removal = null;
         if (selected.Length > 0)
         {
+            var removalOptions = new LeftoverRemovalOptions { BackupRegistryKeys = !options.Has("no-registry-backup") };
             removal = await new RemovalExecutor()
-                .RemoveAsync(app, selected, null, cancellationToken)
+                .RemoveAsync(app, selected, null, cancellationToken, removalOptions)
                 .ConfigureAwait(false);
         }
 
@@ -271,6 +277,7 @@ internal static class UninstallCommand
                     RegistryFailed = removal.RegistryFailed,
                     BytesRemoved = removal.BytesRemoved,
                     VaultPath = removal.VaultPath,
+                    RegistryBackupSkipped = removal.RegistryBackupSkipped,
                     Errors = removal.Errors,
                 },
             DryRun = false,

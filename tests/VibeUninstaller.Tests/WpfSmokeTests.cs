@@ -44,12 +44,38 @@ public class WpfSmokeTests
                 var main = new MainWindow();
 
                 stage = "theme switching";
+                string[] requiredBrushes =
+                {
+                    "PanelBackground",
+                    "RowHoverBrush",
+                    "AlternatingRowBackgroundBrush",
+                    "SelectionBackgroundBrush",
+                    "SelectionBorderBrush",
+                };
+
                 foreach (var option in ThemeCatalog.All)
                 {
                     ThemeManager.Apply(application.Resources, option.Id, persist: false);
-                    if (application.TryFindResource("PanelBackground") is not SolidColorBrush)
+                    foreach (var key in requiredBrushes)
                     {
-                        throw new InvalidOperationException($"Theme '{option.Id}' is missing a brush.");
+                        if (application.TryFindResource(key) is not SolidColorBrush)
+                        {
+                            throw new InvalidOperationException($"Theme '{option.Id}' is missing the brush '{key}'.");
+                        }
+                    }
+
+                    // The user complaint that started this: a selected row looked
+                    // exactly like a hovered one, so the two must stay apart.
+                    var selection = ((SolidColorBrush)application.Resources["SelectionBackgroundBrush"]).Color;
+                    foreach (var neighbour in new[] { "RowHoverBrush", "AlternatingRowBackgroundBrush", "PanelBackground" })
+                    {
+                        var other = ((SolidColorBrush)application.Resources[neighbour]).Color;
+                        var distance = Math.Abs(selection.R - other.R) + Math.Abs(selection.G - other.G) + Math.Abs(selection.B - other.B);
+                        if (distance < 24)
+                        {
+                            throw new InvalidOperationException(
+                                $"Theme '{option.Id}' draws the selected row almost like '{neighbour}' ({selection} vs {other}).");
+                        }
                     }
 
                     if (main.Background is not SolidColorBrush windowBackground)

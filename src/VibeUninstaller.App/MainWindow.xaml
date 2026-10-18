@@ -263,7 +263,8 @@
                         </Image.Style>
                       </Image>
                       <Border Width="26" Height="26" CornerRadius="7" Background="{Binding LettermarkBrush}"
-                              HorizontalAlignment="Center" VerticalAlignment="Center">
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              ToolTip="{Binding IconReason}">
                         <Border.Style>
                           <Style TargetType="Border">
                             <Setter Property="Visibility" Value="Collapsed" />
@@ -328,7 +329,8 @@
                 </Image.Style>
               </Image>
               <Border Width="30" Height="30" CornerRadius="8" Background="{Binding SelectedApp.LettermarkBrush}"
-                      HorizontalAlignment="Center" VerticalAlignment="Center">
+                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                      ToolTip="{Binding SelectedApp.IconReason}">
                 <Border.Style>
                   <Style TargetType="Border">
                     <Setter Property="Visibility" Value="Collapsed" />

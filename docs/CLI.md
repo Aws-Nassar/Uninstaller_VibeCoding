@@ -63,7 +63,8 @@ app?" and it also works when the application was uninstalled long ago.
 3. Runs the application's own uninstaller, waits for the whole process tree, and
    interprets the exit code (0, 1641, 3010, 1605, 1614, 1602).
 4. Rescans and classifies what is left, with a reason and a risk tier per item.
-5. With `--clean`, removes the items and recycles files / backs up registry keys.
+5. With `--clean`, removes the items, recycles files and exports every registry key to a
+   `.reg` backup before deleting it (unless `--no-registry-backup` is passed).
 
 | Option | Meaning |
 |--------|---------|
@@ -74,6 +75,7 @@ app?" and it also works when the application was uninstalled long ago.
 | `--yes` | Do not ask for confirmation; required when stdin is redirected |
 | `--dry-run` | Show the command and every leftover (all tiers), change nothing |
 | `--timeout <minutes>` | Give up on the uninstaller after n minutes (default 30, minimum 1) |
+| `--no-registry-backup` | Delete registry keys without writing `.reg` backups. Files still go to the Recycle Bin. |
 | `--json` | JSON report on stdout |
 
 ## Exit codes
@@ -155,6 +157,7 @@ Removal (`--clean`) only happens when `--yes` is passed in non-interactive mode.
     "registryFailed": 0,
     "bytesRemoved": 5919744,
     "vaultPath": "C:\\ProgramData\\VibeUninstaller\\Vault\\7-Zip-2026-10-17-1200",
+    "registryBackupSkipped": false,
     "errors": []
   },
   "dryRun": false,

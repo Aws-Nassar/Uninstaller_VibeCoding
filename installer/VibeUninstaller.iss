@@ -1,6 +1,6 @@
 ; Inno Setup script for the VibeUninstaller setup executable.
 ; Built by .github/workflows/release.yml after the self-contained publish.
-;   ISCC.exe /DAppVersion=0.2.0 installer\VibeUninstaller.iss
+;   ISCC.exe /DAppVersion=0.0.0-dev installer\VibeUninstaller.iss
 
 #ifndef AppVersion
   #define AppVersion "0.0.0-dev"
@@ -55,4 +55,8 @@ Name: "{autoprograms}\VibeUninstaller"; Filename: "{app}\VibeUninstaller.exe"; I
 Name: "{autodesktop}\VibeUninstaller"; Filename: "{app}\VibeUninstaller.exe"; IconFilename: "{app}\VibeUninstaller.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\VibeUninstaller.exe"; Description: "{cm:LaunchProgram,VibeUninstaller}"; Flags: nowait postinstall skipifsilent
+; Entries with the postinstall flag default to runasoriginaluser (the normally
+; non-elevated credentials of whoever started Setup), and the GUI manifest
+; requires administrator, so CreateProcess would fail with error 740. Asking for
+; Setup's own credentials fixes the finish-page launch.
+Filename: "{app}\VibeUninstaller.exe"; Description: "{cm:LaunchProgram,VibeUninstaller}"; Flags: nowait postinstall skipifsilent runascurrentuser

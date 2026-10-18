@@ -76,6 +76,30 @@ public class ReportJsonTests
         Assert.Equal(4096, report.SizeBytes);
     }
 
+    [Fact]
+    public void Removal_reports_advertise_skipped_registry_backups()
+    {
+        var json = ReportJson.Serialize(new OperationReport
+        {
+            App = AppReport.From(TestData.SevenZip()),
+            Removal = new RemovalReportJson
+            {
+                FilesRemoved = 3,
+                FilesFailed = 0,
+                RegistryRemoved = 2,
+                RegistryFailed = 0,
+                BytesRemoved = 1024,
+                VaultPath = @"C:\ProgramData\VibeUninstaller\Vault\x",
+                RegistryBackupSkipped = true,
+                Errors = Array.Empty<string>(),
+            },
+            Outcome = "partial",
+            Messages = Array.Empty<string>(),
+        });
+
+        Assert.Contains("\"registryBackupSkipped\": true", json);
+    }
+
     [Theory]
     [InlineData(null, "-")]
     [InlineData(0L, "0 B")]

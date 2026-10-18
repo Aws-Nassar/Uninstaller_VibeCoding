@@ -181,6 +181,9 @@ public sealed record RemovalReportJson
 
     public string? VaultPath { get; init; }
 
+    /// <summary>True when registry keys were deleted without a .reg backup.</summary>
+    public bool RegistryBackupSkipped { get; init; }
+
     public required IReadOnlyList<string> Errors { get; init; }
 }
 

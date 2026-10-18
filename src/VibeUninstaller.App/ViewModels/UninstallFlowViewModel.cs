@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using VibeUninstaller.App.Services;
 using VibeUninstaller.Core.Execution;
 using VibeUninstaller.Core.Models;
 using VibeUninstaller.Windows.Execution;
@@ -40,6 +41,7 @@ public sealed partial class UninstallFlowViewModel : ObservableObject
 
         ScanLeftovers = CanScanLeftovers;
         UseSilent = false;
+        BackupRegistryKeys = AppSettingsStore.Load().BackupRegistryKeys;
         SelectedAppDetails =
             $"{App.Publisher ?? "Unknown publisher"} · {App.Version ?? "unknown version"} · {App.ScopeLabel}";
     }
@@ -103,6 +105,26 @@ public sealed partial class UninstallFlowViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _sizeComputationRunning;
+
+    /// <summary>
+    /// Export registry keys to .reg files before deleting them. On by default
+    /// and persisted, because it is the safety net for a wrong cleanup.
+    /// </summary>
+    [ObservableProperty]
+    private bool _backupRegistryKeys = true;
+
+    public string BackupNote => BackupRegistryKeys
+        ? "Every registry key is exported to a .reg file in the backup folder before it is deleted."
+        : "Registry keys will be deleted without a .reg backup. Files still go to the Recycle Bin.";
+
+    public bool BackupNoteIsWarning => !BackupRegistryKeys;
+
+    partial void OnBackupRegistryKeysChanged(bool value)
+    {
+        OnPropertyChanged(nameof(BackupNote));
+        OnPropertyChanged(nameof(BackupNoteIsWarning));
+        AppSettingsStore.Save(AppSettingsStore.Load() with { BackupRegistryKeys = value });
+    }
 
     public string StateName => State.ToString();
 
@@ -207,13 +229,22 @@ public sealed partial class UninstallFlowViewModel : ObservableObject
         try
         {
             var report = await new RemovalExecutor()
-                .RemoveAsync(App, selected, progress, CancellationToken.None)
+                .RemoveAsync(
+                    App,
+                    selected,
+                    progress,
+                    CancellationToken.None,
+                    new LeftoverRemovalOptions { BackupRegistryKeys = BackupRegistryKeys })
                 .ConfigureAwait(true);
+
+            var backupSummary = report.RegistryBackupSkipped
+                ? "registry backups were skipped"
+                : $"registry backups in {report.VaultPath}";
 
             RemovalSummary =
                 $"Recycled {report.FilesRemoved:N0} file item(s) ({report.BytesRemoved / 1024.0 / 1024.0:N1} MB) · " +
                 $"removed {report.RegistryRemoved:N0} registry key(s) · " +
-                $"registry backups in {report.VaultPath}";
+                backupSummary;
 
             if (report.Errors.Count > 0)
             {

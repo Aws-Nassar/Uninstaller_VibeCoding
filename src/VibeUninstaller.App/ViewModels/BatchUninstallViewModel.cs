@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using VibeUninstaller.App.Services;
 using VibeUninstaller.Core.Execution;
 using VibeUninstaller.Core.Models;
 using VibeUninstaller.Windows.Execution;
@@ -86,6 +87,7 @@ public sealed partial class BatchUninstallViewModel : ObservableObject
     public BatchUninstallViewModel(IReadOnlyList<InstalledApp> apps)
     {
         Items = new ObservableCollection<BatchItemViewModel>(apps.Select(app => new BatchItemViewModel(app)));
+        BackupRegistryKeys = AppSettingsStore.Load().BackupRegistryKeys;
     }
 
     public ObservableCollection<BatchItemViewModel> Items { get; }
@@ -126,6 +128,26 @@ public sealed partial class BatchUninstallViewModel : ObservableObject
 
     [ObservableProperty]
     private long _selectedBytes;
+
+    /// <summary>
+    /// Export registry keys to .reg files before deleting them. On by default
+    /// and persisted, because it is the safety net for a wrong cleanup.
+    /// </summary>
+    [ObservableProperty]
+    private bool _backupRegistryKeys = true;
+
+    public string BackupNote => BackupRegistryKeys
+        ? "Every registry key is exported to a .reg file in the backup folder before it is deleted."
+        : "Registry keys will be deleted without a .reg backup. Files still go to the Recycle Bin.";
+
+    public bool BackupNoteIsWarning => !BackupRegistryKeys;
+
+    partial void OnBackupRegistryKeysChanged(bool value)
+    {
+        OnPropertyChanged(nameof(BackupNote));
+        OnPropertyChanged(nameof(BackupNoteIsWarning));
+        AppSettingsStore.Save(AppSettingsStore.Load() with { BackupRegistryKeys = value });
+    }
 
     public string StateName => State.ToString();
 
@@ -286,6 +308,7 @@ public sealed partial class BatchUninstallViewModel : ObservableObject
         var bytes = 0L;
         var keys = 0;
         var errors = new List<string>();
+        var backupsSkipped = false;
         string? vault = null;
 
         try
@@ -295,20 +318,26 @@ public sealed partial class BatchUninstallViewModel : ObservableObject
                 StageText = $"Removing leftovers of {group.Key.DisplayName}...";
                 var items = group.Select(item => item.Item with { SizeBytes = item.SizeBytes }).ToArray();
                 var report = await executor
-                    .RemoveAsync(group.Key.App, items, progress, CancellationToken.None)
+                    .RemoveAsync(
+                        group.Key.App,
+                        items,
+                        progress,
+                        CancellationToken.None,
+                        new LeftoverRemovalOptions { BackupRegistryKeys = BackupRegistryKeys })
                     .ConfigureAwait(true);
 
                 files += report.FilesRemoved;
                 bytes += report.BytesRemoved;
                 keys += report.RegistryRemoved;
+                backupsSkipped |= report.RegistryBackupSkipped;
                 vault ??= report.VaultPath;
                 errors.AddRange(report.Errors);
             }
 
             RemovalSummary =
                 $"Recycled {files:N0} file item(s) ({bytes / 1024.0 / 1024.0:N1} MB) · " +
-                $"removed {keys:N0} registry key(s)" +
-                (vault is null ? string.Empty : $" · registry backups in {vault}");
+                $"removed {keys:N0} registry key(s) · " +
+                (backupsSkipped ? "registry backups were skipped" : $"registry backups in {vault}");
 
             if (errors.Count > 0)
             {

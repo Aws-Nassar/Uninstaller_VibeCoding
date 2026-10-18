@@ -83,6 +83,7 @@
           <RowDefinition Height="Auto" />
           <RowDefinition Height="Auto" />
           <RowDefinition Height="*" />
+          <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="{Binding ResultSummary}" TextWrapping="Wrap" Margin="2,0,2,10" />
@@ -137,6 +138,22 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+
+        <StackPanel Grid.Row="3" Margin="2,12,2,0">
+          <CheckBox Content="Back up registry keys to .reg files before deleting them"
+                    IsChecked="{Binding BackupRegistryKeys}" />
+          <TextBlock Text="{Binding BackupNote}" Margin="24,4,0,0" TextWrapping="Wrap">
+            <TextBlock.Style>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding BackupNoteIsWarning}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource ModerateBrush}" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
+        </StackPanel>
       </Grid>
 
       <!-- Removing -->

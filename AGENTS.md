@@ -26,7 +26,8 @@ automation-first CLI. Pre-1.0; only milestones M0/M1 in `ROADMAP.md` are impleme
 ## Project map
 
 - `VibeUninstaller.Core` (net10.0): pure, OS-free logic — classifier, rules,
-  fingerprinting, reporting DTOs, name matching. New testable logic goes here.
+  fingerprinting, reporting DTOs, name matching, icon and MSIX-manifest parsing. New
+  testable logic goes here.
 - `VibeUninstaller.Windows`: registry/AppX/Steam providers, uninstall runner,
   file and registry removal.
 - `VibeUninstaller.Snapshot`: before/after snapshots and diffing.
@@ -53,7 +54,10 @@ automation-first CLI. Pre-1.0; only milestones M0/M1 in `ROADMAP.md` are impleme
   so each window sets `Style="{StaticResource WindowStyle}"` explicitly.
 - Theme brushes live in `Resources/Themes/*.xaml` and must be referenced with
   `DynamicResource`, never `StaticResource`, or switching themes stops updating
-  that element. `Window.Icon` needs the fully qualified pack URI
+  that element. Every theme must define `SelectionBackgroundBrush` and
+  `SelectionBorderBrush`; `WpfSmokeTests` fails when one is missing or when the
+  selected-row color is too close to the hover/alternating row colors. `Window.Icon`
+  needs the fully qualified pack URI
   (`pack://application:,,,/VibeUninstaller;component/...`) to load in tests.
 - The CLI is a contract: JSON only on stdout, diagnostics on stderr, exit codes
   0–6 documented in `docs/CLI.md`; non-interactive removal requires `--yes`.
@@ -65,7 +69,9 @@ automation-first CLI. Pre-1.0; only milestones M0/M1 in `ROADMAP.md` are impleme
 - Files are removed via `SHFileOperation` with FOF_ALLOWUNDO (Recycle Bin), never
   hard-deleted.
 - `RegistryManipulator.ExportKey`: a registry key is never deleted when its `.reg`
-  backup could not be written.
+  backup could not be written. Backups are written unless the caller passes
+  `LeftoverRemovalOptions { BackupRegistryKeys = false }` (GUI review checkbox, CLI
+  `--no-registry-backup`), so the opt-out must stay deliberate and visible.
 - The default flow is preview/dry-run; nothing is removed before confirmation.
 
 ## Docs

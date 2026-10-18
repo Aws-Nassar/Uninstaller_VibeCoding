@@ -171,7 +171,7 @@
               <Setter TargetName="Root" Property="Background" Value="{DynamicResource RowHoverBrush}" />
             </Trigger>
             <Trigger Property="IsChecked" Value="True">
-              <Setter TargetName="Root" Property="Background" Value="{DynamicResource PanelAltBackground}" />
+              <Setter TargetName="Root" Property="Background" Value="{DynamicResource SelectionBackgroundBrush}" />
               <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
               <Setter Property="FontWeight" Value="SemiBold" />
             </Trigger>
@@ -197,14 +197,19 @@
       <Setter.Value>
         <ControlTemplate TargetType="ListBoxItem">
           <Border x:Name="Root" Background="Transparent" CornerRadius="4" Padding="{TemplateBinding Padding}">
-            <ContentPresenter />
+            <Grid>
+              <ContentPresenter />
+              <Rectangle x:Name="SelectionBar" Width="3" HorizontalAlignment="Left" Fill="Transparent"
+                         IsHitTestVisible="False" />
+            </Grid>
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
               <Setter TargetName="Root" Property="Background" Value="{DynamicResource RowHoverBrush}" />
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-              <Setter TargetName="Root" Property="Background" Value="{DynamicResource PanelAltBackground}" />
+              <Setter TargetName="Root" Property="Background" Value="{DynamicResource SelectionBackgroundBrush}" />
+              <Setter TargetName="SelectionBar" Property="Fill" Value="{DynamicResource SelectionBorderBrush}" />
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -248,23 +253,46 @@
     <Setter Property="HorizontalContentAlignment" Value="Left" />
   </Style>
 
+  <!-- Rows: the selected row gets its own background plus an accent bar, and
+       keeps it while hovered, so a selected row is never mistaken for a plain
+       hovered one. The background is set through the template border, because
+       the DataGrid assigns RowBackground as a local value on the row itself. -->
   <Style TargetType="DataGridRow">
     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-    <Style.Triggers>
-      <Trigger Property="IsMouseOver" Value="True">
-        <Setter Property="Background" Value="{DynamicResource RowHoverBrush}" />
-      </Trigger>
-      <Trigger Property="IsSelected" Value="True">
-        <Setter Property="Background" Value="{DynamicResource PanelAltBackground}" />
-      </Trigger>
-      <MultiTrigger>
-        <MultiTrigger.Conditions>
-          <Condition Property="IsSelected" Value="True" />
-          <Condition Property="IsMouseOver" Value="True" />
-        </MultiTrigger.Conditions>
-        <Setter Property="Background" Value="{DynamicResource RowHoverBrush}" />
-      </MultiTrigger>
-    </Style.Triggers>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="DataGridRow">
+          <Border x:Name="Root" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+            <Grid>
+              <SelectiveScrollingGrid>
+                <SelectiveScrollingGrid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                </SelectiveScrollingGrid.ColumnDefinitions>
+                <SelectiveScrollingGrid.RowDefinitions>
+                  <RowDefinition Height="*" />
+                  <RowDefinition Height="Auto" />
+                </SelectiveScrollingGrid.RowDefinitions>
+                <DataGridCellsPresenter Grid.Row="0" ItemsPanel="{TemplateBinding ItemsPanel}"
+                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                <DataGridDetailsPresenter Grid.Row="1" Visibility="{TemplateBinding DetailsVisibility}"
+                                          SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical" />
+              </SelectiveScrollingGrid>
+              <Rectangle x:Name="SelectionBar" Width="3" HorizontalAlignment="Left" Fill="Transparent"
+                         IsHitTestVisible="False" />
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Root" Property="Background" Value="{DynamicResource RowHoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+              <Setter TargetName="Root" Property="Background" Value="{DynamicResource SelectionBackgroundBrush}" />
+              <Setter TargetName="SelectionBar" Property="Fill" Value="{DynamicResource SelectionBorderBrush}" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
   </Style>
 
   <Style TargetType="DataGridCell">
@@ -308,7 +336,7 @@
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
               <Rectangle x:Name="Accent" Grid.Column="0" Width="3" Height="16" RadiusX="1.5" RadiusY="1.5"
-                         Fill="{DynamicResource AccentBrush}" Visibility="Hidden"
+                         Fill="{DynamicResource SelectionBorderBrush}" Visibility="Hidden"
                          VerticalAlignment="Center" HorizontalAlignment="Left" />
               <ContentPresenter Grid.Column="1" VerticalAlignment="Center" />
             </Grid>
@@ -318,7 +346,7 @@
               <Setter TargetName="Root" Property="Background" Value="{DynamicResource RowHoverBrush}" />
             </Trigger>
             <Trigger Property="IsChecked" Value="True">
-              <Setter TargetName="Root" Property="Background" Value="{DynamicResource PanelAltBackground}" />
+              <Setter TargetName="Root" Property="Background" Value="{DynamicResource SelectionBackgroundBrush}" />
               <Setter TargetName="Accent" Property="Visibility" Value="Visible" />
               <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
               <Setter Property="FontWeight" Value="SemiBold" />
@@ -352,6 +380,8 @@
   <Style x:Key="InfoLabel" TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
     <Setter Property="FontSize" Value="10.5" />
     <Setter Property="FontWeight" Value="SemiBold" />
+    <!-- Keeps the value next to a label from touching it. -->
+    <Setter Property="Margin" Value="0,0,10,0" />
   </Style>
 
   <Style x:Key="InfoValue" TargetType="TextBlock">

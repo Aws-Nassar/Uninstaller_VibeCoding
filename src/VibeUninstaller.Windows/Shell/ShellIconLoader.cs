@@ -11,6 +11,7 @@ namespace VibeUninstaller.Windows.Shell;
 /// </summary>
 public static class ShellIconLoader
 {
+    /// <summary>Extracts the icon an installer registered, or 0 when there is none.</summary>
     public static nint Extract(string? displayIcon, int size = 32)
     {
         var reference = IconLocationParser.Parse(displayIcon);
@@ -20,19 +21,34 @@ public static class ShellIconLoader
         }
 
         var path = Environment.ExpandEnvironmentVariables(reference.Path);
-        if (path.Length == 0 || !File.Exists(path))
+        return path.Length == 0 || !File.Exists(path) ? 0 : ExtractFromFile(path, reference.Index, size);
+    }
+
+    /// <summary>
+    /// Extracts the icon at a known file. Registering a wrong (or negative)
+    /// index is common, so the first icon and a smaller size are tried before
+    /// giving up.
+    /// </summary>
+    public static nint ExtractFromFile(string path, int index, int size = 32)
+    {
+        if (!File.Exists(path))
         {
             return 0;
         }
 
-        if (TryExtract(path, reference.Index, size, out var handle))
+        if (TryExtract(path, index, size, out var handle))
         {
             return handle;
         }
 
         // Negative indexes address resource ids that SHDefExtractIcon does not
         // understand; falling back to the first icon still shows something useful.
-        return reference.Index != 0 && TryExtract(path, 0, size, out handle) ? handle : 0;
+        if (index != 0 && TryExtract(path, 0, size, out handle))
+        {
+            return handle;
+        }
+
+        return size == 16 ? 0 : TryExtract(path, 0, 16, out handle) ? handle : 0;
     }
 
     private static bool TryExtract(string path, int index, int size, out nint handle)

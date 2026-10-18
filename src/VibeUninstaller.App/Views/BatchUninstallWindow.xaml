@@ -100,7 +100,7 @@
                        Text="Uninstallers without a known silent switch may open their own windows. The batch simply waits for them to finish." />
             <Border Margin="0,16,0,0" Padding="12" CornerRadius="8" Background="{DynamicResource PanelAltBackground}">
               <TextBlock Style="{StaticResource CaptionText}" TextWrapping="Wrap"
-                         Text="Safety: reviewed files always go to the Recycle Bin and every registry key is exported to a .reg backup before it is deleted." />
+                         Text="Safety: reviewed files always go to the Recycle Bin, and registry keys are exported to .reg backups unless you turn that off in the review step." />
             </Border>
           </StackPanel>
         </Border>
@@ -131,6 +131,7 @@
               <RowDefinition Height="Auto" />
               <RowDefinition Height="Auto" />
               <RowDefinition Height="*" />
+              <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Text="{Binding ResultSummary}" TextWrapping="Wrap" Margin="0,0,0,10" />
@@ -185,6 +186,22 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
+
+            <StackPanel Grid.Row="3" Margin="0,12,0,0">
+              <CheckBox Content="Back up registry keys to .reg files before deleting them"
+                        IsChecked="{Binding BackupRegistryKeys}" />
+              <TextBlock Text="{Binding BackupNote}" Margin="24,4,0,0" TextWrapping="Wrap">
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding BackupNoteIsWarning}" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource ModerateBrush}" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
+            </StackPanel>
           </Grid>
         </Border>
 

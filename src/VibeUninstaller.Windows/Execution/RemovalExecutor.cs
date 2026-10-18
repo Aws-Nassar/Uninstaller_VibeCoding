@@ -20,12 +20,15 @@ public sealed record RemovalReport
     public string? VaultPath { get; init; }
 
     public long BytesRemoved { get; init; }
+
+    /// <summary>True when registry keys were deleted without a .reg backup.</summary>
+    public bool RegistryBackupSkipped { get; init; }
 }
 
 /// <summary>
-/// Deletes the reviewed leftovers. Files go to the Recycle Bin and every
-/// registry key is exported to a .reg backup first, so nothing is ever lost
-/// silently.
+/// Deletes the reviewed leftovers. Files always go to the Recycle Bin, and
+/// registry keys are exported to a .reg backup first unless the caller
+/// explicitly asked for backups to be skipped.
 /// </summary>
 public sealed class RemovalExecutor
 {
@@ -42,8 +45,11 @@ public sealed class RemovalExecutor
         InstalledApp app,
         IReadOnlyList<LeftoverItem> items,
         IProgress<string>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        LeftoverRemovalOptions? options = null)
     {
+        options ??= new LeftoverRemovalOptions();
+
         var vaultPath = CreateVaultPath(app);
         var registryBackupPath = Path.Combine(vaultPath, "registry");
 
@@ -60,12 +66,15 @@ public sealed class RemovalExecutor
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var backupFile = Path.Combine(registryBackupPath, $"key-{registryRemoved + registryFailed:D4}.reg");
-            if (!_registry.ExportKey(item.Path, backupFile, out var exportError))
+            if (options.BackupRegistryKeys)
             {
-                registryFailed++;
-                errors.Add($"Backup failed, key kept: {item.Path} ({exportError})");
-                continue;
+                var backupFile = Path.Combine(registryBackupPath, $"key-{registryRemoved + registryFailed:D4}.reg");
+                if (!_registry.ExportKey(item.Path, backupFile, out var exportError))
+                {
+                    registryFailed++;
+                    errors.Add($"Backup failed, key kept: {item.Path} ({exportError})");
+                    continue;
+                }
             }
 
             progress?.Report($"Removing registry key {item.Path}");
@@ -102,6 +111,7 @@ public sealed class RemovalExecutor
             Errors = errors,
             VaultPath = vaultPath,
             BytesRemoved = bytesRemoved,
+            RegistryBackupSkipped = !options.BackupRegistryKeys,
         };
 
         await WriteManifestAsync(vaultPath, app, items, report, cancellationToken).ConfigureAwait(false);
@@ -161,6 +171,7 @@ public sealed class RemovalExecutor
                 report.RegistryRemoved,
                 report.RegistryFailed,
                 report.BytesRemoved,
+                report.RegistryBackupSkipped,
             },
             items = items.Select(item => new
             {

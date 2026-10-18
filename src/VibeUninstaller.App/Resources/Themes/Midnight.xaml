@@ -16,6 +16,8 @@
   <SolidColorBrush x:Key="TextBrush" Color="#FFF3F4F6" />
   <SolidColorBrush x:Key="MutedTextBrush" Color="#FF9CA3AF" />
   <SolidColorBrush x:Key="RowHoverBrush" Color="#FF1D1D27" />
+  <SolidColorBrush x:Key="SelectionBackgroundBrush" Color="#FF2A1F4A" />
+  <SolidColorBrush x:Key="SelectionBorderBrush" Color="#FFA78BFA" />
   <SolidColorBrush x:Key="AlternatingRowBackgroundBrush" Color="#FF101018" />
   <SolidColorBrush x:Key="OnAccentBrush" Color="#FFFFFFFF" />
   <SolidColorBrush x:Key="TierInkBrush" Color="#FF0B1018" />

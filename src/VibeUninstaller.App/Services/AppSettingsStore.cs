@@ -6,6 +6,12 @@ namespace VibeUninstaller.App.Services;
 /// <summary>User choices that survive restarts.</summary>
 public sealed record AppSettings(string ThemeId)
 {
+    /// <summary>
+    /// Registry keys are exported to .reg files before they are deleted unless
+    /// the user turns this off in the removal review step.
+    /// </summary>
+    public bool BackupRegistryKeys { get; init; } = true;
+
     public static AppSettings Default { get; } = new(ThemeCatalog.DefaultId);
 }
 
@@ -27,15 +33,28 @@ public static class AppSettingsJson
         try
         {
             using var document = JsonDocument.Parse(json);
-            if (document.RootElement.ValueKind != JsonValueKind.Object
-                || !document.RootElement.TryGetProperty("theme", out var theme)
-                || theme.ValueKind != JsonValueKind.String)
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
                 return AppSettings.Default;
             }
 
+            var themeId = document.RootElement.TryGetProperty("theme", out var theme)
+                          && theme.ValueKind == JsonValueKind.String
+                ? theme.GetString()
+                : null;
+
+            var backupRegistryKeys = true;
+            if (document.RootElement.TryGetProperty("backupRegistryKeys", out var backup)
+                && backup.ValueKind is JsonValueKind.True or JsonValueKind.False)
+            {
+                backupRegistryKeys = backup.GetBoolean();
+            }
+
             // Resolve so an unknown id in the file cannot break startup.
-            return new AppSettings(ThemeCatalog.Resolve(theme.GetString()).Id);
+            return new AppSettings(ThemeCatalog.Resolve(themeId).Id)
+            {
+                BackupRegistryKeys = backupRegistryKeys,
+            };
         }
         catch (JsonException)
         {
@@ -44,7 +63,9 @@ public static class AppSettingsJson
     }
 
     public static string Compose(AppSettings settings) =>
-        JsonSerializer.Serialize(new { theme = settings.ThemeId }, Options);
+        JsonSerializer.Serialize(
+            new { theme = settings.ThemeId, backupRegistryKeys = settings.BackupRegistryKeys },
+            Options);
 }
 
 /// <summary>

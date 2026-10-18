@@ -76,4 +76,37 @@ public class ThemeSettingsTests
     {
         Assert.Equal("midnight", AppSettingsJson.Parse("{\"theme\":\"MIDNIGHT\"}").ThemeId);
     }
+
+    [Fact]
+    public void Settings_round_trip_the_registry_backup_choice()
+    {
+        var json = AppSettingsJson.Compose(new AppSettings("dark") { BackupRegistryKeys = false });
+
+        Assert.Contains("backupRegistryKeys", json);
+        Assert.False(AppSettingsJson.Parse(json).BackupRegistryKeys);
+    }
+
+    [Fact]
+    public void Registry_backups_default_to_on()
+    {
+        Assert.True(AppSettings.Default.BackupRegistryKeys);
+        Assert.True(AppSettingsJson.Parse("{\"theme\":\"dark\"}").BackupRegistryKeys);
+        Assert.True(AppSettingsJson.Parse("{\"backupRegistryKeys\":\"nonsense\"}").BackupRegistryKeys);
+        Assert.True(AppSettingsJson.Parse("{}").BackupRegistryKeys);
+    }
+
+    [Fact]
+    public void A_settings_file_without_a_theme_keeps_the_other_choices()
+    {
+        var settings = AppSettingsJson.Parse("{\"backupRegistryKeys\":false}");
+
+        Assert.Equal(ThemeCatalog.DefaultId, settings.ThemeId);
+        Assert.False(settings.BackupRegistryKeys);
+    }
+
+    [Fact]
+    public void Registry_backups_are_on_by_default_for_removal()
+    {
+        Assert.True(new VibeUninstaller.Core.Models.LeftoverRemovalOptions().BackupRegistryKeys);
+    }
 }

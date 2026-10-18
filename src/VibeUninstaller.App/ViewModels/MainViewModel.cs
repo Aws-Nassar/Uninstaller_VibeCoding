@@ -224,8 +224,8 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Extracts real icons listed in the registry in the background; each
-    /// extraction hits the disk, so it must stay off the UI thread.
+    /// Resolves real icons in the background; every lookup touches the disk, so
+    /// it must stay off the UI thread.
     /// </summary>
     private void QueueIconLoads()
     {
@@ -235,9 +235,7 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        var pending = _allApps
-            .Where(item => item.Icon is null && !string.IsNullOrWhiteSpace(item.App.DisplayIcon))
-            .ToArray();
+        var pending = _allApps.Where(item => !item.IconResolved).ToArray();
         if (pending.Length == 0)
         {
             return;
@@ -247,11 +245,13 @@ public sealed partial class MainViewModel : ObservableObject
         {
             foreach (var item in pending)
             {
-                var icon = IconCache.Get(item.App.DisplayIcon);
-                if (icon is not null)
+                var icon = IconCache.Get(item.App);
+                dispatcher.Invoke(() =>
                 {
-                    dispatcher.Invoke(() => item.Icon = icon);
-                }
+                    item.Icon = icon.Image;
+                    item.IconReason = icon.Reason;
+                    item.IconResolved = true;
+                });
             }
         });
     }
